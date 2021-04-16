@@ -36,7 +36,7 @@ class MQTTbot:
         
 		alert=payload["alert"]
 		action=payload["action"]
-		tosend=f"C'è qualcosa che non va\n{alert}, you should {action}"
+		tosend=f"ATTENTION: The patient {patient["patientID]}\n{alert}, you should {action}"
 		self.bot.sendMessage(chat_ID, text=tosend)
 		# for chat_ID in self.chatIDs:
 		#     self.bot.sendMessage(chat_ID, text=tosend)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     input("press a key to start...")
     tb.start()
     for i in range(5):
-        message={"alert":i,"action":i**2}
+        message={"alert":"is having a Panik attack","action":"check the situation"}
         topic="iSupport/"+i+"/telegram"
         test.myPublish(topic,message)
         time.sleep(3)
