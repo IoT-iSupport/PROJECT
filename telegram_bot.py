@@ -6,7 +6,7 @@ from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardButton, InlineKeyboardMarkup
 
 from MyMQTT import *
-topic="iSupport/+/telegram"
+TOPIC="iSupport/+/telegram"
 
 class MQTTbot:
     def __init__(self):
@@ -15,6 +15,8 @@ class MQTTbot:
         self.__message={"alert":"","action":""}
 	self.CatalogCommunication()
 	self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
+	self.client.start() 
+	self.client.mySubscribe(TOPIC)
 	self.bot = telepot.Bot(self.tokenBot)
 	MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
 
@@ -45,10 +47,6 @@ class MQTTbot:
 		# for chat_ID in self.chatIDs:
 		#     self.bot.sendMessage(chat_ID, text=tosend)
 
-    def start():
-        self.client.start() 
-		self.client.mySubscribe(DAtopicS)
-
     def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(CATALOG_URL+f'/broker') 
@@ -67,10 +65,9 @@ class MQTTbot:
 if __name__ == "__main__":
     
     tb=MQTTbot()
-    tb.CatalogCommunication()
-
     input("press a key to start...")
-    tb.start()
+    test=MyMQTT("testIoTBot",'test.mosquitto.org',1883,None)
+    test.start()
     for i in range(5):
         message={"alert":"is having a Panik attack","action":"check the situation"}
         topic="iSupport/"+str(i)+"/telegram"
