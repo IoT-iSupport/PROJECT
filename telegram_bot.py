@@ -13,14 +13,18 @@ class MQTTbot:
         self.chatIDs=[]
         self.topic = topic
         self.__message={"alert":"","action":""}
+	self.CatalogCommunication()
+	self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
+	self.bot = telepot.Bot(self.tokenBot)
+	MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
 
     def on_chat_message(self, msg):
         content_type, chat_type, chat_ID = telepot.glance(msg)
         self.chatIDs.append(chat_ID)
         message = msg['text']
-        if message=="/start":
-            self.bot.sendMessage(chat_ID, text="Welcome")
-        else:
+        #if message=="/start":
+        #   self.bot.sendMessage(chat_ID, text="Welcome")
+        #else:
             self.bot.sendMessage(chat_ID, text="Command not supported")
         
     def notify(self,topic,message):
@@ -58,10 +62,7 @@ class MQTTbot:
 		for item in body2:
 			new_patient={"patientID":item["patientID"],"chatID":item["telegramIDs"]} #status: 0 off, status: 1 on
 			self.dict.append(new_patient)
-		self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
-		self.bot = telepot.Bot(self.tokenBot)
-		MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
-			#print(self.dict)
+		#print(self.dict)
 
 if __name__ == "__main__":
     
@@ -72,6 +73,6 @@ if __name__ == "__main__":
     tb.start()
     for i in range(5):
         message={"alert":"is having a Panik attack","action":"check the situation"}
-        topic="iSupport/"+i+"/telegram"
+        topic="iSupport/"+str(i)+"/telegram"
         test.myPublish(topic,message)
         time.sleep(3)
