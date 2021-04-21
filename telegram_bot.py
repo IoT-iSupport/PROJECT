@@ -11,7 +11,7 @@ TOPIC="iSupport/+/telegram"
 class MQTTbot:
     def __init__(self):
         self.chatIDs=[]
-        self.__message={"alert":"","action":""}
+        self.__message={"alert":"is having a Panik attack","action":"check the situation"}
 	self.CatalogCommunication()
 	self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
 	self.client.start() 
@@ -23,10 +23,19 @@ class MQTTbot:
         content_type, chat_type, chat_ID = telepot.glance(msg)
         self.chatIDs.append(chat_ID)
         message = msg['text']
-        #if message=="/start":
-        #   self.bot.sendMessage(chat_ID, text="Welcome")
-        #else:
-            self.bot.sendMessage(chat_ID, text="Command not supported")
+        if message=="/start":
+           self.bot.sendMessage(chat_ID, text="Welcome!\nEnter the patientID")
+	elif message.isdigit():
+		for patient in self.dict:
+		if patient["patientID"]==int(message):
+			r=requests.get(CATALOG_URL+f"/chatIDs/{int(message)}")
+			body=r.json()
+			self.dict["chatIDs"]=body["chatIDs"]
+			self.bot.sendMessage(chat_ID, text="Added")
+		else:
+			self.bot.sendMessage(chat_ID, text="No Patient found, retry\nEnter the patientID:")
+        else:
+    		self.bot.sendMessage(chat_ID, text="Command not supported")
         
     def notify(self,topic,message):
         payload=json.loads(payload)
@@ -36,15 +45,12 @@ class MQTTbot:
 
         for patient in self.dict:
 		print(patient["patientID"])
-			if int(patient["patientID"])==id:
-        		        chat_ID=patient["chatID"]
-        
-		alert=payload["alert"]
-		action=payload["action"]
-		tosend=f"ATTENTION: The patient {patient["patientID]}\n{alert}, you should {action}"
-		self.bot.sendMessage(chat_ID, text=tosend)
-		# for chat_ID in self.chatIDs:
-		#     self.bot.sendMessage(chat_ID, text=tosend)
+		if int(patient["patientID"])==id:
+			if "chatIDs" in patient.keys():
+				chat_IDs=patient["chatIDs"]
+				tosend=f"ATTENTION: The patient {patient["patientID]}\n{self.__message["alert"]}, you should {self.__message["action"]}"
+				self.bot.sendMessage(chat_IDs[0], text=tosend)
+				self.bot.sendMessage(chat_IDs[1], text=tosend)
 
     def CatalogCommunication(self):
 		#with the catalog, for retriving information
@@ -57,7 +63,7 @@ class MQTTbot:
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
 		for item in body2:
-			new_patient={"patientID":item["patientID"],"chatID":item["telegramIDs"]} #status: 0 off, status: 1 on
+			new_patient={"patientID":item["patientID"]} #status: 0 off, status: 1 on
 			self.dict.append(new_patient)
 		#print(self.dict)
 
