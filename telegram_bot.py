@@ -26,7 +26,7 @@ class MQTTbot:
         #if message=="/start":
         #   self.bot.sendMessage(chat_ID, text="Welcome")
         #else:
-            self.bot.sendMessage(chat_ID, text="Command not supported")
+        self.bot.sendMessage(chat_ID, text="Command not supported")
         
     def notify(self,topic,message):
         payload=json.loads(payload)
