@@ -1,0 +1,162 @@
+{
+    "broker": {
+        "IPaddress": "test.mosquitto.org",
+        "port": 1883
+    },
+    "token": "1711013176:AAH6bCdvA0dOdL8fX4FIfCPGEqpEFNjN1d4",
+    "deviceList": [
+        {
+            "deviceName": "hr_1",
+            "deviceID": "1",
+            "measureType": [
+                "Heart Rate"
+            ],
+            "availableServices": [
+                "MQTT"
+            ],
+            "servicesDetails": [
+                {
+                    "serviceType": "MQTT",
+                    "topic": [
+                        "iSupport/1/sensors/HeartRate"
+                    ]
+                }
+            ],
+            "lastUpdate": 1618597499.170588
+        },
+        {
+            "deviceName": "acc_1",
+            "deviceID": "2",
+            "measureType": [
+                "Accelerometer"
+            ],
+            "availableServices": [
+                "MQTT"
+            ],
+            "servicesDetails": [
+                {
+                    "serviceType": "MQTT",
+                    "topic": [
+                        "iSupport/1/sensors/Accelerometer"
+                    ]
+                }
+            ],
+            "lastUpdate": 1618597499.1939154
+        },
+        {
+            "deviceName": "mot_1",
+            "deviceID": "3",
+            "measureType": [
+                "Motion"
+            ],
+            "availableServices": [
+                "MQTT"
+            ],
+            "servicesDetails": [
+                {
+                    "serviceType": "MQTT",
+                    "topic": [
+                        "iSupport/1/sensors/Motion"
+                    ]
+                }
+            ],
+            "lastUpdate": 1618597499.2195287
+        },
+        {
+            "deviceName": "airConditionair_1",
+            "deviceID": "4",
+            "measureType": [
+                "Humidity",
+                "Temperature"
+            ],
+            "availableServices": [
+                "MQTT"
+            ],
+            "servicesDetails": [
+                {
+                    "serviceType": "MQTT",
+                    "topic": [
+                        "iSupport/1/sensors/Air"
+                    ]
+                }
+            ],
+            "lastUpdate": 1618597499.2431045
+        },
+        {
+            "deviceName": "light_1",
+            "deviceID": "5",
+            "availableServices": [
+                "MQTT"
+            ],
+            "servicesDetails": [
+                {
+                    "serviceType": "MQTT",
+                    "topic": [
+                        "iSupport/1/actuators/Light"
+                    ]
+                }
+            ],
+            "lastUpdate": 1618597499.2662644
+        },
+        {
+            "deviceName": "airConditionair_1",
+            "deviceID": "6",
+            "availableServices": [
+                "MQTT"
+            ],
+            "servicesDetails": [
+                {
+                    "serviceType": "MQTT",
+                    "topic": [
+                        "iSupport/1/actuators/Air"
+                    ]
+                }
+            ],
+            "lastUpdate": 1618597499.2902446
+        }
+    ],
+    "patientList": [
+        {
+            "patientID": "1",
+            "patientName": "Mario",
+            "patientSurname": "Rossi",
+            "LightsSchedule": "7:00-7:30",
+            "connectedDevices": [
+                {
+                    "measure": "Temperature",
+                    "deviceID": "t_1"
+                }
+            ],
+            "telegramIDs": [],
+            "thingspeakInfo": {
+                "apikeys": [
+                    "UVDC81AL8H9T3SST",
+                    "8GB6GHSYYF6AIB98"
+                ],
+                "channel": 1264245
+            },
+            "lastUpdate": ""
+        },
+        {
+            "patientID": "2",
+            "patientName": "Francesco",
+            "patientSurname": "Bianchi",
+            "LightsSchedule": "17:00-18:30",
+            "connectedDevices": [
+                {
+                    "measure": "Temperature",
+                    "deviceID": "t_1"
+                }
+            ],
+            "telegramIDs": [],
+            "thingspeakInfo": {
+                "apikeys": [
+                    "ZQ2AJZABDSC4MXXG",
+                    "SV1HOET58CE7225M"
+                ],
+                "channel": 1342741
+            },
+            "lastUpdate": ""
+        }
+    ]
+}
