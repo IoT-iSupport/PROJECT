@@ -71,10 +71,6 @@ class DataAnalysis():
 				bodyHR.pop()
 			#chiedere: dobbiamo studiare anche la possibilità che uno dei due sensori si stacca e adesempio la registrazione è interrotta per mezz"ora?
 			
-			collected_HR=[]
-			temp=[]
-			print(len(bodyACC))
-			print(len(bodyHR))
 			for feedACC,feedHR in bodyACC,bodyHR:
 				if float(feedACC["value"])>2: #first threshold
 					temp.append(float(feedHR))
@@ -110,6 +106,7 @@ class DataAnalysis():
 			self.list_dict[pos]["Monthly Measurements"]["panik attack"]+=payload["Number of panik attack"]
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
 				self.publish(id,"monthly")
+				self.list_dict[pos]["Monthly Measurements"]["day"]=0
 			
 	def publish(self,id,command):
 		i= [i for i,pat in enumerate(self.list_dict) if id==pat["patientID"]] #it is unique
@@ -134,6 +131,7 @@ class DataAnalysis():
 			"Panik Attack":self.list_dict[i]["Monthly Measurements"]["panik attack"]
 			}
 			self.client.myPublish(topic, payload)
+			
 
 	
 	def CatalogCommunication(self):
