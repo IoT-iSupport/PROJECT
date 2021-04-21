@@ -65,13 +65,13 @@ class HomeSystemControl():
 							#publish for the activation of the air conditioner
 							msg={"patientID":patient["patientID"],"AirConditionairStatus":1}
 							patient["status"]=1
-							self.myPublish(topicP,msg)
+							self.client.myPublish(topicP,msg)
 						else:
 							Out_u=[u for u in patient["Humidity"] if u>50 or u<40] #out of range values
 							if len(Out_u)>=15:
 								msg={"patientID":patient["patientID"],"AirConditionairStatus":1}
 								patient["status"]=1
-								self.myPublish(topicP,msg)
+								self.client.myPublish(topicP,msg)
 					#Summer:
 					elif now_month>=4 or now_month<=9: #from April to September
 						print('Month check')
