@@ -11,13 +11,12 @@ TOPIC="iSupport/+/telegram"
 class MQTTbot:
     def __init__(self):
         self.chatIDs=[]
-        self.topic = topic
         self.__message={"alert":"","action":""}
 	self.CatalogCommunication()
 	self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
 	self.client.start() 
 	self.client.mySubscribe(TOPIC)
-	self.bot = telepot.Bot(self.tokenBot)
+	self.bot = telepot.Bot(self.token)
 	MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
 
     def on_chat_message(self, msg):
