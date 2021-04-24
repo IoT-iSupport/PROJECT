@@ -17,7 +17,7 @@ class Catalog():
     def GET(self,*uri):
         uri=list(uri)
         if not len(uri):
-            pass #errore
+            raise cherrypy.HTTPError(400,"Bad Request")
         else:
             if uri[0]=='broker':
                 print(json.dumps(self.broker,indent=4))
@@ -34,23 +34,27 @@ class Catalog():
                 print(f'The patient is: {output}')
                 return json.dumps(output,indent=4)
             elif uri[0]=='deviceID':
+                #It it is used by DeviceConnector.py for retriving the registered devices
                 id=uri[1]
                 for item in self.devices:
                     if item['deviceID']==id:
                         return json.dumps(item,indent=4)
-                    #controlli 
-            elif uri[0]=='patientID':
+                   
+            elif uri[0]=='chatIDs':
                 id=uri[1]
                 for item in self.patients:
                     if item['patientID']==id:
-                        return json.dumps(item,indent=4)
-                    #controlli 
+                        msg={"chatIDs":item["telegramIDs"]}
+                        return json.dumps(msg,indent=4)
+            else:
+                raise cherrypy.HTTPError(404,"Not Found")
+                    
     def POST(self,*uri):
         uri=list(uri)
         json_body=json.loads(cherrypy.request.body.read())
         json_body["lastUpdate"]=time.time()
         if not len(uri):
-            pass #signaling error
+            raise cherrypy.HTTPError(400,"Bad Request")
         else:
             if uri[0]=='device':
                 self.devices.append(json_body)
@@ -59,14 +63,14 @@ class Catalog():
                 self.patients.append(json_body)
                 self.save()
             else:
-                pass#error
+                raise cherrypy.HTTPError(404,"Not Found")
             
 
     def PUT(self,*uri):
         json_body=json.loads(cherrypy.request.body.read()) #hp: le informazioni da modifcare sono nel corpo del PUT in cui ci deve essere sempre l'ID
         uri=list(uri)
         if not len(uri):
-            pass #errore
+            raise cherrypy.HTTPError(400,"Bad Request")
         else:
             if uri[0]=='patient':
                 pass
@@ -77,6 +81,8 @@ class Catalog():
                             item[k]=json_body[k]
                         item["lastUpdate"]=time.time()
                 self.save()        
+            else:
+                raise cherrypy.HTTPError(404,"Not Found")
         
     def save(self):
         data={"broker":self.broker,
@@ -118,5 +124,5 @@ if __name__ == "__main__":
                 c.aliveChecker()
                 time.sleep(60)
         except KeyboardInterrupt:
-            raise 
+            False
     cherrypy.engine.block()
