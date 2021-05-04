@@ -7,72 +7,72 @@ import requests
 import numpy as np
 from random import choice
 
-CATALOG_URL='http://127.0.0.1:8080'
-patient=1
-clientID='DeviceConnector'+str(patient)
-CONNECTED_DEVICES={
-	"Sensors":[{
-    		"deviceName": "hr_1",
-    		"deviceID": "1",
-			"measureType": [
-				"Heart Rate"
-			],
-			"availableServices": [
-				"MQTT"
-			],
-			"servicesDetails": [{
-					"serviceType": "MQTT",
-					"topic": ["iSupport/1/sensors/HeartRate"]
-				}]},
-				{
-            "deviceName": "acc_1",
-            "deviceID": "2",
-            "measureType": ["Accelerometer"],
-            "availableServices": ["MQTT"],
-            "servicesDetails": [{
-                "serviceType": "MQTT",
-                "topic": ["iSupport/1/sensors/Accelerometer"]
-            }]
-				},
-{
-			"deviceName": "mot_1",
-			"deviceID": "3",
-			"measureType": ["Motion"],
-			"availableServices": ["MQTT"],
-			"servicesDetails": [{
-				"serviceType": "MQTT",
-				"topic": ["iSupport/1/sensors/Motion"]
-			}]
-		},
-{
-			"deviceName": "airConditionair_1",
-			"deviceID": "4",
-			"measureType": ["Humidity","Temperature"],
-			"availableServices": ["MQTT"],
-			"servicesDetails": [{
-				"serviceType": "MQTT",
-				"topic": ["iSupport/1/sensors/Air"]
-			}]
-		}],
-"Actuators":[
-	{
-			"deviceName": "light_1",
-			"deviceID": "5",
-			"availableServices": ["MQTT"],
-			"servicesDetails": [{
-				"serviceType": "MQTT",
-				"topic": ["iSupport/1/actuators/Light"]
-			}]
-	},{
-			"deviceName": "airConditionair_1",
-			"deviceID": "6",
-			"availableServices": ["MQTT"],
-			"servicesDetails": [{
-				"serviceType": "MQTT",
-				"topic": ["iSupport/1/actuators/Air"]
-			}]
-		}
-]}
+# CATALOG_URL='http://127.0.0.1:8080'
+# patient=1
+
+# CONNECTED_DEVICES={
+# 	"Sensors":[{
+#     		"deviceName": "hr_1",
+#     		"deviceID": "1",
+# 			"measureType": [
+# 				"Heart Rate"
+# 			],
+# 			"availableServices": [
+# 				"MQTT"
+# 			],
+# 			"servicesDetails": [{
+# 					"serviceType": "MQTT",
+# 					"topic": ["iSupport/1/sensors/HeartRate"]
+# 				}]},
+# 				{
+#             "deviceName": "acc_1",
+#             "deviceID": "2",
+#             "measureType": ["Accelerometer"],
+#             "availableServices": ["MQTT"],
+#             "servicesDetails": [{
+#                 "serviceType": "MQTT",
+#                 "topic": ["iSupport/1/sensors/Accelerometer"]
+#             }]
+# 				},
+# {
+# 			"deviceName": "mot_1",
+# 			"deviceID": "3",
+# 			"measureType": ["Motion"],
+# 			"availableServices": ["MQTT"],
+# 			"servicesDetails": [{
+# 				"serviceType": "MQTT",
+# 				"topic": ["iSupport/1/sensors/Motion"]
+# 			}]
+# 		},
+# {
+# 			"deviceName": "airConditionair_1",
+# 			"deviceID": "4",
+# 			"measureType": ["Humidity","Temperature"],
+# 			"availableServices": ["MQTT"],
+# 			"servicesDetails": [{
+# 				"serviceType": "MQTT",
+# 				"topic": ["iSupport/1/sensors/Air"]
+# 			}]
+# 		}],
+# "Actuators":[
+# 	{
+# 			"deviceName": "light_1",
+# 			"deviceID": "5",
+# 			"availableServices": ["MQTT"],
+# 			"servicesDetails": [{
+# 				"serviceType": "MQTT",
+# 				"topic": ["iSupport/1/actuators/Light"]
+# 			}]
+# 	},{
+# 			"deviceName": "airConditionair_1",
+# 			"deviceID": "6",
+# 			"availableServices": ["MQTT"],
+# 			"servicesDetails": [{
+# 				"serviceType": "MQTT",
+# 				"topic": ["iSupport/1/actuators/Air"]
+# 			}]
+# 		}
+# ]}
 
 t=[]#for the subscription - glabal variable
 for item in CONNECTED_DEVICES["Actuators"]:
@@ -80,16 +80,17 @@ for item in CONNECTED_DEVICES["Actuators"]:
 		if SD["serviceType"]=='MQTT':
 			t.append(SD["topic"][0])
 
-fpR=open("REST.txt")
-linesREST=fpR.readlines()
-fpS=open("SPORT.txt")
-linesSPORT=fpS.readlines()
 
 class DeviceConnector():
-	def __init__(self):
-		self.baseTopicS="iSupport/1/actuators"
+	def __init__(self,CATALOG_URL,clientID,patient,baseTopic,linesREST,linesSPORT):
+		self.linesREST = linesREST
+		self.linesSPORT = linesSPORT
+		self.patient = patient
+		self.clientID = clientID
+		self.CATALOG_URL = CATALOG_URL
+		self.baseTopicS=f"{baseTopic}{patient}/actuators"
 		self.__message={
-			'patientID':patient, 
+			'patientID':self.patient, 
 			'bn':'',
 			'e':
 				[
@@ -102,20 +103,20 @@ class DeviceConnector():
 
 	def RESTCommunication(self):
 		for device in CONNECTED_DEVICES["Sensors"]+CONNECTED_DEVICES["Actuators"]:
-			r=requests.get(CATALOG_URL+f'/deviceID/{device["deviceID"]}') #retrive the device 
+			r=requests.get(self.CATALOG_URL+f'/deviceID/{device["deviceID"]}') #retrive the device 
 			if r.text=='':
 				#new Registration
-				requests.post(CATALOG_URL+f'/device',json=device)
+				requests.post(self.CATALOG_URL+f'/device',json=device)
 			else:
 				#updating Devices
-				requests.put(CATALOG_URL+f'/device',json=device)
+				requests.put(self.CATALOG_URL+f'/device',json=device)
 
 	def MQTTinfoRequest(self):
-		r=requests.get(CATALOG_URL+f'/broker') 
+		r=requests.get(self.CATALOG_URL+f'/broker') 
 		body=r.json()
 		self.broker=body["IPaddress"]
 		self.port=body["port"]
-		self.client=MyMQTT(clientID,self.broker,self.port,self)
+		self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 		
 	#Solo per noi per aggiungere i devices alla lista dei connessi
 	# def insertNewDevice(self,newDevice):
@@ -200,14 +201,14 @@ class DeviceConnector():
 			elif d["measureType"]==["Accelerometer"]: 
 				msg=dict(self.__message)
 				if range_hr=='r' or range_hr=='d':
-					n=random.randint(5,len(linesREST))		
-					m=linesREST[n].split(',')
+					n=random.randint(5,len(self.linesREST))		
+					m=self.linesREST[n].split(',')
 					float_number=[float(number) for number in m]
 					a=float_number[4]
 				
 				elif range_hr=='s':
-					n=random.randint(5,len(linesSPORT))		
-					m=linesSPORT[n].split(',')
+					n=random.randint(5,len(self.linesSPORT))		
+					m=self.linesSPORT[n].split(',')
 					float_number=[float(number) for number in m]
 					a=float_number[4] #the absolute value of the accelerometer 3-axial measurements
 				
@@ -231,7 +232,23 @@ class DeviceConnector():
 			self.status_airC==payload["AirConditionairStatus"]			
 
 if __name__=="__main__":
-	dc=DeviceConnector()
+	fp = open(sys.argv[1])
+	conf = json.load(fp)
+	CATALOG_URL = conf["Catalog_url"]
+	bT = conf["baseTopic"] 
+	patientID = conf["patientID"]
+	clientID='DeviceConnector'+str(patientID)
+	close(fp)
+
+	fp = open(sys.argv[2]) #REST.txt
+	linesREST=fp.readlines()
+	close(fp)
+
+	fp = open(sys.argv[3]) #"SPORT.txt"
+	linesSPORT=fpS.readlines()
+	close(fp)
+	
+	dc=DeviceConnector(CATALOG_URL,clientID,patientID,bT,linesREST,linesSPORT)
 	dc.MQTTinfoRequest()
 	dc.start()
 	#first step: connection and registration    
