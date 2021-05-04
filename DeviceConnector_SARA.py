@@ -13,7 +13,7 @@ import sys
 
 #codice DeviceConnector2 da git_hub ha degli errori--> correzioni:
 #1. if self.broker... in MQTTinfoRequest non funziona perchè devono esistere già self.broker e self.port; provo a mettere la prima richiesta di broker e port nell'init e poi modifco la funzione per connettersi periodicamnete al Catalog, dc.RESTCommunication(sys.argv[2]) l'ho spostato fuori dal while perchè se no self.t non esiste per fare lo start() e nel main ho tolto dc.MQTTinfoRequest() e ho messo lo start
-# altra alternativa per 1 è inizializzare self.broker e self.port nel main e lasciare il codice di prima oppure ogni volta ricreare il client e riconnettersi 
+# Si potrebbero inizializzare self.broker e self.port nel main e lasciare il codice di prima però c'è sempre il self.client.stop() che implica che un client esista già
 
 #cose da correggere qualisiasi strada sceglieremo:
 # for topic in self.t["topic"] nello start(): non va bene perchè self.t non ha la chiave topic
