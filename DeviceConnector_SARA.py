@@ -11,7 +11,7 @@ import sys
 # CATALOG_URL='http://127.0.0.1:8080'
 # patient=1
 
-#codice da git_hub (ha degli errori)--> correzioni:
+#codice DeviceConnector2 da git_hub ha degli errori--> correzioni:
 #1. if self.broker... in MQTTinfoRequest non funziona perchè devono esistere già self.broker e self.port; provo a mettere la prima richiesta di broker e port nell'init e poi modifco la funzione per connettersi periodicamnete al Catalog, dc.RESTCommunication(sys.argv[2]) l'ho spostato fuori dal while perchè se no self.t non esiste per fare lo start() e nel main ho tolto dc.MQTTinfoRequest() e ho messo lo start
 # altra alternativa per 1 è inizializzare self.broker e self.port nel main e lasciare il codice di prima
 
