@@ -11,75 +11,6 @@ import sys
 # CATALOG_URL='http://127.0.0.1:8080'
 # patient=1
 
-# CONNECTED_DEVICES={
-# 	"Sensors":[{
-#     		"deviceName": "hr_1",
-#     		"deviceID": "1",
-# 			"measureType": [
-# 				"Heart Rate"
-# 			],
-# 			"availableServices": [
-# 				"MQTT"
-# 			],
-# 			"servicesDetails": [{
-# 					"serviceType": "MQTT",
-# 					"topic": ["iSupport/1/sensors/HeartRate"]
-# 				}]},
-# 				{
-#             "deviceName": "acc_1",
-#             "deviceID": "2",
-#             "measureType": ["Accelerometer"],
-#             "availableServices": ["MQTT"],
-#             "servicesDetails": [{
-#                 "serviceType": "MQTT",
-#                 "topic": ["iSupport/1/sensors/Accelerometer"]
-#             }]
-# 				},
-# {
-# 			"deviceName": "mot_1",
-# 			"deviceID": "3",
-# 			"measureType": ["Motion"],
-# 			"availableServices": ["MQTT"],
-# 			"servicesDetails": [{
-# 				"serviceType": "MQTT",
-# 				"topic": ["iSupport/1/sensors/Motion"]
-# 			}]
-# 		},
-# {
-# 			"deviceName": "airConditionair_1",
-# 			"deviceID": "4",
-# 			"measureType": ["Humidity","Temperature"],
-# 			"availableServices": ["MQTT"],
-# 			"servicesDetails": [{
-# 				"serviceType": "MQTT",
-# 				"topic": ["iSupport/1/sensors/Air"]
-# 			}]
-# 		}],
-# "Actuators":[
-# 	{
-# 			"deviceName": "light_1",
-# 			"deviceID": "5",
-# 			"availableServices": ["MQTT"],
-# 			"servicesDetails": [{
-# 				"serviceType": "MQTT",
-# 				"topic": ["iSupport/1/actuators/Light"]
-# 			}]
-# 	},{
-# 			"deviceName": "airConditionair_1",
-# 			"deviceID": "6",
-# 			"availableServices": ["MQTT"],
-# 			"servicesDetails": [{
-# 				"serviceType": "MQTT",
-# 				"topic": ["iSupport/1/actuators/Air"]
-# 			}]
-# 		}
-# ]}
-
-t=[]#for the subscription - glabal variable
-for item in CONNECTED_DEVICES["Actuators"]:
-	for SD in item["servicesDetails"]:
-		if SD["serviceType"]=='MQTT':
-			t.append(SD["topic"][0])
 
 
 class DeviceConnector():
@@ -102,7 +33,15 @@ class DeviceConnector():
 		self.status_airC=0 #per airConditionair_1 0 spento, 1 acceso
 		self.status_light=0 #for the lights
 
-	def RESTCommunication(self):
+	def RESTCommunication(self,filename):
+		CONNECTED_DEVICES = json.load(open(filename))
+		
+		t=[]#for the subscription - glabal variable
+		for item in CONNECTED_DEVICES["Actuators"]:
+			for SD in item["servicesDetails"]:
+				if SD["serviceType"]=='MQTT':
+					t.append(SD["topic"][0])
+					
 		for device in CONNECTED_DEVICES["Sensors"]+CONNECTED_DEVICES["Actuators"]:
 			r=requests.get(self.CATALOG_URL+f'/deviceID/{device["deviceID"]}') #retrive the device 
 			if r.text=='':
@@ -258,12 +197,12 @@ if __name__=="__main__":
 		#On off del motion valutare cosa mettere (più presenza/assenza)
 		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=On\n\t0=Off\n')
 		command=command.split(',')
-		dc.RESTCommunication()
+		dc.RESTCommunication("CONNECTED_DEVICE.json")
 		try:
 			while True:
 				dc.publish(command[0],int(command[1]),command[2]) #0: range heart rate, 1: temperatura(0/1=dentro/fuori range), 2: motion sensor (1/0=on/off) 
 				if i==2: #every 120s
-					dc.RESTCommunication()
+					dc.RESTCommunication("CONNECTED_DEVICE.json")
 					i=0
 				# time.sleep(45)  
 				i=i+1
