@@ -1,0 +1,15 @@
+{
+    "Catalog_url":"http://127.0.0.1:8080",
+    "clientID": "",
+    "baseTopic":"iSupport/",
+    "DeviceConnector":{
+        "PatientID": 1
+    },
+
+    "HomeSystemControl":
+        {   
+            "TimeSlot" : ["7:00","23:00"],
+            "endTopic":["Air","Motion"]
+        }
+
+}
