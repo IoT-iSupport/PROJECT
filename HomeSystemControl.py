@@ -140,6 +140,7 @@ if __name__=="__main__":
 		if time.time()-tic>=60*5:
 			#every 5 minutes the Home comfort is checked 
 			HSControl.controlStrategy()
+			HSControl.CatalogCommunication() #every 5 minutes Communication with Catalog is repeted (??)
 			tic=time.time()
 
 	
