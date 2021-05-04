@@ -21,6 +21,7 @@ import sys
 # CONNECTED_DEVICES non è poi visto in publish quindi ho messo self.connected_devices
 #  r.json()["IPandress"] IPaddress
 # non close(fp) ma fp.close()
+#patientID = conf["DeviceConnector"]["patientID"] aggiunto conf
 
 class DeviceConnector():
 	def __init__(self,CATALOG_URL,clientID,patient,baseTopic,linesREST,linesSPORT):
