@@ -5,6 +5,9 @@
     "DeviceConnector":{
         "PatientID": 1
     },
+    "PatientControl":{
+        "endTopic":["HeartRate","Accelerometer"]
+    },
 
     "HomeSystemControl":
         {   

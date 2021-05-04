@@ -16,10 +16,11 @@ from statistics import median
 import sys
 
 clientID = 'PatientControl'
-endTopic = ['HeartRate','Accelerometer']
+# endTopic = ['HeartRate','Accelerometer']
 
 class PatientControl():
-	def __init__(self,CATALOG_URL,baseTopic):
+	def __init__(self,CATALOG_URL,baseTopic,endTopic):
+		self.endTopic = endTopic
 		self.dict=[] # the windows are filled until the 10*60/60s = 10 samp
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
 		self.jump=0
@@ -28,7 +29,7 @@ class PatientControl():
 
 	def start(self):
 		self.client.start()
-		for t in endTopic:
+		for t in self.endTopic:
 			topic=f'{self.baseTopic}+/sensors/'+t
 			self.client.mySubscribe(topic)
 
@@ -103,8 +104,10 @@ if __name__=="__main__":
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
-
-	PC=PatientControl(CATALOG_URL)
+	endTopic = conf["PatientControl"]["endTopic"]
+	close(fp)
+	
+	PC=PatientControl(CATALOG_URL,bT,endTopic)
 	PC.CatalogCommunication()
 	PC.start()
 	tic=time.time()
