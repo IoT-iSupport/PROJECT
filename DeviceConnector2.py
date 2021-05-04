@@ -6,6 +6,7 @@ import threading
 import requests
 import numpy as np
 from random import choice
+import sys
 
 # CATALOG_URL='http://127.0.0.1:8080'
 # patient=1
