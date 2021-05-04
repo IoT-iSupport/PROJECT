@@ -11,6 +11,8 @@ import sys
 # CATALOG_URL='http://127.0.0.1:8080'
 # patient=1
 
+#ci sono un po' di problemi soprattutto con la parte di richiesta al Catalog periodica. Ho fatto le modifiche a parte in DeviceConnector_SARA così poi valutiamo le modifche
+
 class DeviceConnector():
 	def __init__(self,CATALOG_URL,clientID,patient,baseTopic,linesREST,linesSPORT):
 		self.linesREST = linesREST
