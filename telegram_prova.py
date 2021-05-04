@@ -4,15 +4,16 @@ import requests
 import telepot
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardButton, InlineKeyboardMarkup
-
+import sys
 from myMQTT import *
-TOPIC="iSupport/+/telegram"
-CATALOG_URL='http://127.0.0.1:8080'
+
+# CATALOG_URL='http://127.0.0.1:8080'
 
 class MQTTbot:
-	def __init__(self):
+	def __init__(self,CATALOG_URL,baseTopic):
+		self.CATALOG_URL = CATALOG_URL
+		self.baseTopic = baseTopic
 		self.dict=[]
-		
 		self.__message={"alert":"is having a Panik attack","action":"check the situation"}
 	
 	def on_chat_message(self, msg):
@@ -25,7 +26,7 @@ class MQTTbot:
 		elif message.isdigit():
 			for patient in self.dict:
 				if int(patient["patientID"])==int(message):
-					r=requests.get(CATALOG_URL+f"/chatIDs/{int(message)}")
+					r=requests.get(self.CATALOG_URL+f"/chatIDs/{int(message)}")
 					body=r.json()
 					patient["chatIDs"]=body["chatIDs"]
 					print(self.dict)
@@ -56,13 +57,13 @@ class MQTTbot:
 
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
-		r=requests.get(CATALOG_URL+f'/broker') 
+		r=requests.get(self.CATALOG_URL+f'/broker') 
 		body=r.json()
 		self.broker=body["IPaddress"]
 		self.port=body["port"]
-		r=requests.get(CATALOG_URL+f'/token') 
+		r=requests.get(self.CATALOG_URL+f'/token') 
 		self.token=r.json()
-		r=requests.get(CATALOG_URL+f'/patients') 
+		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
 		for item in body2:
 			new_patient={"patientID":item["patientID"]} #status: 0 off, status: 1 on
@@ -70,13 +71,19 @@ class MQTTbot:
 		#creation of the client
 		self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
 		self.client.start() 
+		TOPIC = f"{self.baseTopic}+/telegram"
 		self.client.mySubscribe(TOPIC)
 		self.bot = telepot.Bot(self.token)
 		MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
 
 if __name__ == "__main__":
-	
-	tb=MQTTbot()
+	 fp = open(sys.argv[1])
+	conf = json.load(fp)
+	CATALOG_URL = conf["Catalog_url"]
+	bT = conf["baseTopic"] 
+	close(fp)
+
+    tb=MQTTbot(CATALOG_URL,bT)
 	input("press a key to start...")
 	tb.CatalogCommunication()
 	while True:

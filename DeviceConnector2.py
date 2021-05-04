@@ -11,8 +11,6 @@ import sys
 # CATALOG_URL='http://127.0.0.1:8080'
 # patient=1
 
-
-
 class DeviceConnector():
 	def __init__(self,CATALOG_URL,clientID,patient,baseTopic,linesREST,linesSPORT):
 		self.linesREST = linesREST
@@ -36,12 +34,20 @@ class DeviceConnector():
 	def RESTCommunication(self,filename):
 		CONNECTED_DEVICES = json.load(open(filename))
 		
-		t=[]#for the subscription - glabal variable
+		self.t={}
+		#t model:
+		#t = {
+		# "Light": "iSupport/1/actuators/Light",
+		# "Air": "iSupport/1/actuators/Air"
+		# }
 		for item in CONNECTED_DEVICES["Actuators"]:
 			for SD in item["servicesDetails"]:
 				if SD["serviceType"]=='MQTT':
-					t.append(SD["topic"][0])
-					
+					for topic in SD["topic"]:
+						key = topic.split('/')[3]
+						value = topic
+						self.t[key]=value
+
 		for device in CONNECTED_DEVICES["Sensors"]+CONNECTED_DEVICES["Actuators"]:
 			r=requests.get(self.CATALOG_URL+f'/deviceID/{device["deviceID"]}') #retrive the device 
 			if r.text=='':
@@ -53,10 +59,19 @@ class DeviceConnector():
 
 	def MQTTinfoRequest(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') 
-		body=r.json()
-		self.broker=body["IPaddress"]
-		self.port=body["port"]
-		self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+		if self.broker and self.port:
+			if not self.broker == r.json()["IPandress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPandress"]
+				self.port = r.json()["port"]
+				self.client.stop()
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+				self.start()
+			
+		else:
+			self.broker = r.json()["IPandress"]
+			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+			self.start()
+
 		
 	#Solo per noi per aggiungere i devices alla lista dei connessi
 	# def insertNewDevice(self,newDevice):
@@ -66,7 +81,7 @@ class DeviceConnector():
 	
 	def start(self):
 		self.client.start()
-		for topic in t:
+		for topic in self.t["topic"]:
 			self.client.mySubscribe(topic)
 
 	def stop(self):
@@ -165,10 +180,11 @@ class DeviceConnector():
 	def notify(self,topic,payload):
 		#lights, airConditionair
 		payload=json.loads(payload)		
-		if topic == t[0]:
+		
+		if topic.split('/')[3] == 'Light':
 			#relays command (Lights)
 			self.status_light=payload["e"][0]["value"]
-		elif topic ==t[1]:
+		elif topic.split('/')[3] == 'Air':
 			self.status_airC==payload["AirConditionairStatus"]			
 
 if __name__=="__main__":
@@ -179,30 +195,31 @@ if __name__=="__main__":
 	patientID = conf["patientID"]
 	clientID='DeviceConnector'+str(patientID)
 	close(fp)
+	
 
-	fp = open(sys.argv[2]) #REST.txt
+	fp = open("REST.txt") 
 	linesREST=fp.readlines()
 	close(fp)
 
-	fp = open(sys.argv[3]) #"SPORT.txt"
+	fp = open("SPORT.txt") 
 	linesSPORT=fpS.readlines()
 	close(fp)
-	
+
 	dc=DeviceConnector(CATALOG_URL,clientID,patientID,bT,linesREST,linesSPORT)
 	dc.MQTTinfoRequest()
-	dc.start()
 	#first step: connection and registration    
 	i=1
 	while True:
 		#On off del motion valutare cosa mettere (più presenza/assenza)
 		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=On\n\t0=Off\n')
 		command=command.split(',')
-		dc.RESTCommunication("CONNECTED_DEVICE.json")
+		dc.RESTCommunication(sys.argv[2])
 		try:
 			while True:
 				dc.publish(command[0],int(command[1]),command[2]) #0: range heart rate, 1: temperatura(0/1=dentro/fuori range), 2: motion sensor (1/0=on/off) 
 				if i==2: #every 120s
-					dc.RESTCommunication("CONNECTED_DEVICE.json")
+					dc.RESTCommunication(sys.argv[2])
+					dc.MQTTinfoRequest()
 					i=0
 				# time.sleep(45)  
 				i=i+1
