@@ -8,19 +8,21 @@ import json
 import requests
 from datetime import datetime
 from myMQTT import *
-CATALOG_URL='http://127.0.0.1:8080'
+
 clientID='HomeSystemControlMS'
-endTopic=['Air','Motion']
-time_slot=['7:00','23:00'] #for preventing energy waste
 
 class HomeSystemControl():
-	def __init__(self):
+	def __init__(self,CATALOG_URL,bt,timeslot,endTopic):
 		self.dict=[] # list of patient
+		self.CATALOG_URL = CATALOG_URL
+		self.baseTopic = bt
+		self.timeslot = timeslot
+		self.endTopic = endTopic
 
 	def start(self):
 		self.client.start()
-		for t in endTopic:
-			topic='iSupport/+/sensors/'+t
+		for t in self.endTopic:
+			topic=f'{self.baseTopic}+/sensors/'+t
 			self.client.mySubscribe(topic)
 
 	def notify(self,topic,payload):
@@ -30,16 +32,16 @@ class HomeSystemControl():
 		for patient in self.dict:
 			if patient["patientID"]==id:
 				print(f'\npatient number: {patient["patientID"]}\n')
-				if topic[3]==endTopic[0]:
+				if topic[3]==self.endTopic[0]:
 					patient["Temperature"].append(float(payload["e"][0]["value"]))
 					patient["Humidity"].append(float(payload["e"][1]["value"]))
-				elif topic[3]==endTopic[1]:
+				elif topic[3]==self.endTopic[1]:
 					patient["Motion"].append(int(payload["e"][0]["value"]))
 
 	def controlStrategy(self):
 		print('Control strategy check')
 		for patient in self.dict:
-			topicP=f'iSupport/{patient["patientID"]}/actuators/Air'
+			topicP=f'{self.baseTopic}{patient["patientID"]}/actuators/Air'
 			while len(patient["Temperature"])>15:
 				patient["Temperature"].pop(0)
 			while len(patient["Humidity"])>15:
@@ -54,8 +56,8 @@ class HomeSystemControl():
 				print('Motion check')
 				now_time=datetime.today().time()
 				now_month=datetime.now().month
-				t1=datetime.strptime(time_slot[0],"%H:%M").time()
-				t2=datetime.strptime(time_slot[1],"%H:%M").time()
+				t1=datetime.strptime(self.timeslot[0],"%H:%M").time()
+				t2=datetime.strptime(self.timeslot[1],"%H:%M").time()
 				if  t1<=now_time<=t2: 
 					#Winter:
 					if now_month>=10 or now_month<=3: #from October to March         
@@ -106,24 +108,30 @@ class HomeSystemControl():
 
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
-		r=requests.get(CATALOG_URL+f'/broker') 
+		r=requests.get(self.CATALOG_URL+f'/broker') 
 		body=r.json()
 		self.broker=body["IPaddress"]
 		self.port=body["port"]
 		self.client=MyMQTT(clientID,self.broker,self.port,self) 
 
 		#patients information
-		r=requests.get(CATALOG_URL+f'/patients') 
+		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
 		for item in body2:
 			new_patient={"patientID":item["patientID"],"Temperature":[],"Humidity":[],"Motion":[],"status":0}
 			self.dict.append(new_patient)
-		
-
 
 
 if __name__=="__main__":
-	HSControl=HomeSystemControl()
+	fp = open(sys.argv[1])
+	conf = json.load(fp)
+	CATALOG_URL = conf["Catalog_url"]
+	bT = conf["baseTopic"] 
+	timeslot = ["HomeSystemControl"]["TimeSlot"]
+	endTopic = ["HomeSystemControl"]["endTopic"]
+	close(fp)
+
+	HSControl=HomeSystemControl(CATALOG_URL,bt,timeslot,endTopic)
 	HSControl.CatalogCommunication()
 	HSControl.start()
 	tic=time.time()
