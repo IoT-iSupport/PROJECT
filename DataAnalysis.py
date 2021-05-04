@@ -1,6 +1,7 @@
 import json
 from myMQTT import *
 import requests
+import sys
 import statistics
 # it is a block that has the task of obtaining statistical data on the wellness of the patient. It provides information such as:
 # - weekly report of average heart rate in time bands of the day; 
