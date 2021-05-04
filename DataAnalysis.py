@@ -8,13 +8,15 @@ import statistics
 # - recurrence of panic attacks (example: number of panic attack in the last month);
 # - weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door (Flow chart 2).
 # It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor and as a MQTT publisher that sends processed data to Node-RED.
-CATALOG_URL="http://127.0.0.1:8080"
+# CATALOG_URL="http://127.0.0.1:8080"
 clientID="DataAnalysisMS"
-DAtopicS="iSupport/+/statistics/#" #/weekly and /monthly
-DATtopicP_base="iSupport/"
+# DAtopicS="iSupport/+/statistics/#" 
+# DATtopicP_base="iSupport/"
 
 class DataAnalysis():
-	def __init__(self):
+	def __init__(self,CATALOG_URL,topic_base):
+		self.DATtopicP_base = topic_base
+		self.DAtopicS = topic_base + '+/statistics/#' #/weekly and /monthly
 		self.list_dict=[]
 		self.CatalogCommunication()
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
@@ -23,7 +25,7 @@ class DataAnalysis():
 
 	def start(self):
 		self.client.start() 
-		self.client.mySubscribe(DAtopicS)
+		self.client.mySubscribe(self.DAtopicS)
 
 	def stop(self):
 		self.client.stop()
@@ -110,7 +112,7 @@ class DataAnalysis():
 			
 	def publish(self,id,command):
 		i= [i for i,pat in enumerate(self.list_dict) if id==pat["patientID"]] #it is unique
-		topic=DATtopicP_base+str(i)+"/nodered"
+		topic=self.DATtopicP_base+str(i)+"/nodered"
 		
 		if command=='weekly':
 			activity=self.list_dict[i]["Weekly Measurements"]["activity"]
@@ -136,12 +138,12 @@ class DataAnalysis():
 	
 	def CatalogCommunication(self):
 		#Retriving information about MB
-		r=requests.get(CATALOG_URL+f"/broker") 
+		r=requests.get(self.CATALOG_URL+f"/broker") 
 		body=r.json()
 		self.broker=body["IPaddress"]
 		self.port=body["port"]
 		#Retriving information about ThingSpeak API keys
-		r=requests.get(CATALOG_URL+f"/patients") 
+		r=requests.get(self.CATALOG_URL+f"/patients") 
 		body2=r.json() #lista di dizionari
 		for item in body2:
 			patient={"patientID":int(item["patientID"]),
@@ -165,7 +167,12 @@ class DataAnalysis():
 			
 
 if __name__=="__main__":
-	D=DataAnalysis()
+	fp = open(sys.argv[1])
+	conf = json.load(fp)
+	CATALOG_URL = conf["Catalog_url"]
+	bT = conf["baseTopic"] 
+
+	D=DataAnalysis(CATALOG_URL,bT)
 	D.start()
 	while True:
 		pass
