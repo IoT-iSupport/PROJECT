@@ -47,7 +47,7 @@ class Catalog():
                         msg={"chatIDs":item["telegramIDs"]}
                         return json.dumps(msg,indent=4)
             else:
-                raise cherrypy.HTTPError(404,"Not Found")
+                raise cherrypy.HTTPError(400,"Bad Request")
                     
     def POST(self,*uri):
         uri=list(uri)
