@@ -6,7 +6,7 @@ import sys
 
 #stesso ragionamento del DeviceConnector_SARA per la comunicazione periodica con il Catalog.
 #anche i pazienti dobbiamo mettere un controllo se cambiano? 
-#self.dict=[] #se non si svuota prima di rifare la comunicazione con il Catalog gli stessi pazienti possono essere riaggiunti. Non va bene perchè lo status viene sovrascritto
+#self.dict=[] #se non si svuota prima di rifare la comunicazione con il Catalog gli stessi pazienti possono essere riaggiunti
 
 clientID='LigthShiftMS'
 
@@ -71,8 +71,8 @@ class LigthShift():
 		
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
-		#self.dict=[]
-		present=0
+		for item in body2:
+			present=0
 			for patient in self.dict:
 				if item["patientID"]==patient["patientID"]:
 					present=1
