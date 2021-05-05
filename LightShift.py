@@ -71,11 +71,15 @@ class LigthShift():
 		
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
-		self.dict=[] #se non si svuota e
-		for item in body2:
-			new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #status: 0 off, status: 1 on
-			self.dict.append(new_patient)
-		#print(self.dict)
+		#self.dict=[]
+		present=0
+			for patient in self.dict:
+				if item["patientID"]==patient["patientID"]:
+					present=1
+			if present==0: #aggiungo il paziente solo se non è già presente
+				new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #status: 0 off, status: 1 on
+				self.dict.append(new_patient)
+				#print(self.dict)
 		
 
 if __name__=="__main__":
