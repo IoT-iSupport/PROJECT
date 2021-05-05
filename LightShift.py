@@ -6,7 +6,7 @@ import sys
 
 #stesso ragionamento del DeviceConnector_SARA per la comunicazione periodica con il Catalog.
 #anche i pazienti dobbiamo mettere un controllo se cambiano? 
-#self.dict=[] #se non si svuota prima di rifare la comunicazione con il Catalog gli stessi pazienti possono essere riaggiunti
+#self.dict=[] #se non si svuota prima di rifare la comunicazione con il Catalog gli stessi pazienti possono essere riaggiunti. Non va bene perchè lo status viene sovrascritto
 
 clientID='LigthShiftMS'
 
