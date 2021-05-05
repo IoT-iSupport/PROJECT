@@ -5,7 +5,8 @@ from datetime import datetime
 import sys
 
 #stesso ragionamento del DeviceConnector_SARA per la comunicazione periodica con il Catalog.
-#anche i pazienti dobbiamo mettere un controllo se cambiano?
+#anche i pazienti dobbiamo mettere un controllo se cambiano? 
+#self.dict=[] #se non si svuota prima di rifare la comunicazione con il Catalog gli stessi pazienti possono essere riaggiunti
 
 clientID='LigthShiftMS'
 
@@ -70,6 +71,7 @@ class LigthShift():
 		
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
+		self.dict=[] #se non si svuota e
 		for item in body2:
 			new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #status: 0 off, status: 1 on
 			self.dict.append(new_patient)
