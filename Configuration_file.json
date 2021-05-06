@@ -13,6 +13,12 @@
         {   
             "TimeSlot" : ["7:00","23:00"],
             "endTopic":["Air","Motion"]
-        }
+        },
+    
+    "ThingSpeakAdaptor":{
+        "endTopic":["HeartRate","Accelerometer","Motion", "Temperature", "Humidity"],
+        "WriteBaseUrl":"https://api.thingspeak.com/update?api_key=",
+        "ReadBaseUrl": "https://api.thingspeak.com/channels/"
+    }
 
 }
