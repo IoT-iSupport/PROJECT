@@ -11,9 +11,11 @@ import sys
 # CATALOG_URL='http://127.0.0.1:8080'
 # patient=1
 
-#codice DeviceConnector2 da git_hub ha degli errori--> correzioni:
-#1. if self.broker... in MQTTinfoRequest non funziona perchè devono esistere già self.broker e self.port; provo a mettere la prima richiesta di broker e port nell'init e poi modifco la funzione per connettersi periodicamnete al Catalog, dc.RESTCommunication(sys.argv[2]) l'ho spostato fuori dal while perchè se no self.t non esiste per fare lo start() e nel main ho tolto dc.MQTTinfoRequest() e ho messo lo start
+#codice DeviceConnector2 su git_hub ha degli errori--> correzioni:
+#1. if self.broker... in MQTTinfoRequest non funziona perchè devono esistere già self.broker e self.port; provo a mettere la prima richiesta di broker e port nell'init e poi modifco la funzione per connettersi periodicamnete al Catalog, dc.RESTCommunication(sys.argv[2]) l'ho spostato fuori dal while perchè se no self.t non esiste per fare lo start() e ho messo lo start() nel main
 # Si potrebbero inizializzare self.broker e self.port nel main e lasciare il codice di prima però c'è sempre il self.client.stop() che implica che un client esista già
+
+#Ho fatto circa le stesse modifiche anche negli altri script che comunicano con il Catlog ma negli altri c'è il problema della request per i pazienti (ex LightShift: se ad ogni comunicazione con Catalog facessi l'append a self.dict aggiungerei dei pazienti che ci sono già; se svuotassi il self.dict dentro CatalogCommunication allorora sovrascriverei le info sullo status. Ho pensato di controllare se il paz è già in self.dict e se lo è aggiorno il "LightsSchedule" che potrebbe cambiare(?) e il resto lo lascio così se non c'è faccio append). Ho fatto circa gli stessi ragionamenti ragionamenti anche oer gli altri script.
 
 #cose da correggere qualisiasi strada sceglieremo:
 # for topic in self.t["topic"] nello start(): non va bene perchè self.t non ha la chiave topic
