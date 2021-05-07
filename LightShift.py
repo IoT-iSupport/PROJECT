@@ -4,10 +4,6 @@ from myMQTT import *
 from datetime import datetime
 import sys
 
-#stesso ragionamento del DeviceConnector_SARA per la comunicazione periodica con il Catalog.
-#anche i pazienti dobbiamo mettere un controllo se cambiano? 
-#self.dict=[] #se non si svuota prima di rifare la comunicazione con il Catalog gli stessi pazienti possono essere riaggiunti
-
 clientID='LigthShiftMS'
 
 class LigthShift():
@@ -76,6 +72,7 @@ class LigthShift():
 			for patient in self.dict:
 				if item["patientID"]==patient["patientID"]:
 					present=1
+					patient["time"]=item["LightsSchedule]
 			if present==0: #aggiungo il paziente solo se non è già presente
 				new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #status: 0 off, status: 1 on
 				self.dict.append(new_patient)
