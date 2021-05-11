@@ -159,6 +159,12 @@ class PatientControl():
 			if not item["patientID"] in patient_ID_list:
 				new_patient={"patientID":item["patientID"], "channel":item["channel"], "apikeyWrite": item["apikey"][0],"apikeyRead": item["apikey"][1],"windowHR":[],"windowACC":[]}
 				self.dict.append(new_patient)
+			else:
+				for patient in self.dict:
+					if patient["patientID"]==item["patientID"]:
+						patient["apikeyWrite"]=item["apikey"][0] #... update apikey and channel
+						patient["apikeyRead"]=item["apikey"][1]
+						patient["channel"]=item["channel"]	
 			
 
 if __name__=="__main__":
