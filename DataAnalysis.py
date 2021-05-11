@@ -149,13 +149,13 @@ class DataAnalysis():
 				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
 				self.client.stop()
-				self.client=MyMQTT(self.clientID,self.broker,self.port)
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 				self.start()	
 		else:
 			print('else CatalogCommunication')
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
-			self.client=MyMQTT(self.clientID,self.broker,self.port)
+			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 			self.start()
 
 		#Retriving information about ThingSpeak API keys
