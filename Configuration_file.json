@@ -22,5 +22,8 @@
         "WriteBaseUrl":"https://api.thingspeak.com/update?api_key=",
         "ReadBaseUrl": "https://api.thingspeak.com/channels/"
     }
+    "DataAnalysis":{
+        "clientID":"DataAnalysisMS"
+    }
 
 }
