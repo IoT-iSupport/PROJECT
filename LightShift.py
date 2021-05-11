@@ -86,7 +86,6 @@ if __name__=="__main__":
 	fp.close()
 
 	LS=LigthShift(CATALOG_URL,bT,clientID)
-	LS.start()
 	
 	while True:
 		LS.CatalogCommunication()
