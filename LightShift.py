@@ -1,6 +1,6 @@
 import json
 import requests
-from myMQTT import *
+from MyMQTT import *
 from datetime import datetime
 import sys
 
@@ -10,9 +10,8 @@ class LigthShift():
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = bT
 		self.clientID=clientID
-		self.broker=body["IPaddress"]
-		self.port=body["port"]
-		self.client=MyMQTT(self.clientID,self.broker,self.port,self) 
+		self.broker=''
+		self.port=0
 
 	def start(self):
 		self.client.start()
@@ -62,7 +61,13 @@ class LigthShift():
 				self.port = r.json()["port"]
 				self.client.stop()
 				self.client=MyMQTT(self.clientID,self.broker,self.port)
-				self.start()
+				self.start()	
+		else:
+			print('else CatalogCommunication')
+			self.broker = r.json()["IPaddress"]
+			self.port = r.json()["port"]
+			self.client=MyMQTT(self.clientID,self.broker,self.port)
+			self.start()
 		
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
@@ -82,11 +87,10 @@ if __name__=="__main__":
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"]
-	clientID=conf["clientID"] 
+	clientID=conf["LightShift"]["clientID"] 
 	fp.close()
 
-	LS=LigthShift(CATALOG_URL,bT,clientID)
-	
+	LS=LigthShift(CATALOG_URL,bT,clientID)	
 	while True:
 		LS.CatalogCommunication()
 		LS.controlStrategy()
