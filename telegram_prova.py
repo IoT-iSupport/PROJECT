@@ -5,15 +5,19 @@ import telepot
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardButton, InlineKeyboardMarkup
 import sys
-from myMQTT import *
+from MyMQTT import *
 
-# CATALOG_URL='http://127.0.0.1:8080'
 
 class MQTTbot:
-	def __init__(self,CATALOG_URL,baseTopic):
+	def __init__(self,CATALOG_URL,baseTopic,endTopic,clientID):
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = baseTopic
+		self.endTopic=endTopic
+		self.clientID=clientID
 		self.dict=[]
+		self.token=0
+		self.broker=''
+		self.port=0
 		self.__message={"alert":"is having a Panik attack","action":"check the situation"}
 	
 	def on_chat_message(self, msg):
@@ -65,34 +69,53 @@ class MQTTbot:
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
-		body=r.json()
-		self.broker=body["IPaddress"]
-		self.port=body["port"]
-		r=requests.get(self.CATALOG_URL+f'/token') 
-		self.token=r.json()
+		if self.broker and self.port:
+			print('if CatalogCommunication')
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPaddress"]
+				self.port = r.json()["port"]
+				self.client.stop()
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+				self.client.start() 
+				TOPIC = f"{self.baseTopic}+/+{self.endTopic}"
+				print(TOPIC)
+				self.client.mySubscribe(TOPIC)	
+		else:
+			print('else CatalogCommunication')
+			self.broker = r.json()["IPaddress"]
+			self.port = r.json()["port"]
+			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+			self.client.start() 
+			TOPIC = f"{self.baseTopic}+/{self.endTopic}"
+			print(TOPIC)
+			self.client.mySubscribe(TOPIC)
+
+		r=requests.get(self.CATALOG_URL+f'/token')
+		if self.token:
+			if not self.token== r.json():
+				self.token=r.json()
+				self.bot = telepot.Bot(self.token)
+				MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
+		
 		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
 		for item in body2:
 			new_patient={"patientID":item["patientID"]} #status: 0 off, status: 1 on
 			self.dict.append(new_patient)
-		#creation of the client
-		self.client=MyMQTT("telegramBot_iSupport",self.broker,self.port,self)
-		self.client.start() 
-		TOPIC = f"{self.baseTopic}+/telegram"
-		self.client.mySubscribe(TOPIC)
-		self.bot = telepot.Bot(self.token)
-		MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
-		print(TOPIC)
+
 
 if __name__ == "__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
+	endTopic=conf["TelegramBot"]["endTopic"]
+	clientID=conf["TelegramBot"]["clientID"]
 	fp.close()
 
-	tb=MQTTbot(CATALOG_URL,bT)
+	tb=MQTTbot(CATALOG_URL,bT,endTopic,clientID)
+	print(clientID)
 	input("press a key to start...")
-	tb.CatalogCommunication()
 	while True:
-		pass
+		tb.CatalogCommunication()
+		time.sleep(120)
