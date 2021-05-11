@@ -6,11 +6,13 @@
         "PatientID": 1
     },
     "PatientControl":{
+        "clientID" : "PatientControlMS",
         "endTopic":["HeartRate","Accelerometer"]
     },
 
     "HomeSystemControl":
         {   
+            "clientID":"HomeSystemControlMS",
             "TimeSlot" : ["7:00","23:00"],
             "endTopic":["Air","Motion"]
         },
