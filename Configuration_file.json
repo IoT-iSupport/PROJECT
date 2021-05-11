@@ -18,15 +18,20 @@
         },
     
     "ThingSpeakAdaptor":{
-        "endTopic":["HeartRate","Accelerometer","Motion", "Temperature", "Humidity"],
-        "WriteBaseUrl":"https://api.thingspeak.com/update?api_key=",
-        "ReadBaseUrl": "https://api.thingspeak.com/channels/"
+        "clientID":"TSAdaptor",
+        "endTopic":["HeartRate","Accelerometer","Motion", "Temperature", "Humidity"]
     },
     "DataAnalysis":{
         "clientID":"DataAnalysisMS"
     },
     "LightShift":{
         "clientID":"LigthShiftMS"
-    }    
+    },
+    ,
+    "TelegramBot": {
+
+        "clientID":"telegramBot_iSupport",
+        "endTopic":"telegram"
+    } 
 
 }
