@@ -7,18 +7,19 @@
 import json
 import requests
 from datetime import datetime
-from myMQTT import *
+from MyMQTT import *
 import sys
 
-clientID='HomeSystemControlMS'
-
 class HomeSystemControl():
-	def __init__(self,CATALOG_URL,bt,timeslot,endTopic):
+	def __init__(self,CATALOG_URL,bt,clientID,timeslot,endTopic):
 		self.dict=[] # list of patient
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = bt
+		self.clientID=clientID
 		self.timeslot = timeslot
 		self.endTopic = endTopic
+		self.broker=''
+		self.port=0
 
 	def start(self):
 		self.client.start()
@@ -108,38 +109,50 @@ class HomeSystemControl():
 					self.client.myPublish(topicP,msg)  
 
 	def CatalogCommunication(self):
-		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
-		body=r.json()
-		self.broker=body["IPaddress"]
-		self.port=body["port"]
-		self.client=MyMQTT(clientID,self.broker,self.port,self) 
+		if self.broker and self.port:
+			print('if CatalogCommunication')
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPaddress"]
+				self.port = r.json()["port"]
+				self.client.stop()
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+				self.start()	
+		else:
+			print('else CatalogCommunication')
+			self.broker = r.json()["IPaddress"]
+			self.port = r.json()["port"]
+			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+			self.start()
 
 		#patients information
 		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
+		patient_ID_list=[ID["patientID"] for ID in self.dict]
 		for item in body2:
-			new_patient={"patientID":item["patientID"],"Temperature":[],"Humidity":[],"Motion":[],"status":0}
-			self.dict.append(new_patient)
+			if not item["patientID"] in patient_ID_list:
+				new_patient={"patientID":item["patientID"],"Temperature":[],"Humidity":[],"Motion":[],"status":0}
+				self.dict.append(new_patient)
 
 
 if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
-	bT = conf["baseTopic"] 
-	timeslot = ["HomeSystemControl"]["TimeSlot"]
-	endTopic = ["HomeSystemControl"]["endTopic"]
-	close(fp)
+	bt = conf["baseTopic"] 
+	clientID=conf["HomeSystemControl"]["clientID"]
+	timeslot = conf["HomeSystemControl"]["TimeSlot"]
+	endTopic = conf["HomeSystemControl"]["endTopic"]
+	fp.close()
 
-	HSControl=HomeSystemControl(CATALOG_URL,bt,timeslot,endTopic)
+	HSControl=HomeSystemControl(CATALOG_URL,bt,clientID,timeslot,endTopic)
 	HSControl.CatalogCommunication()
-	HSControl.start()
 	tic=time.time()
 	while True:
 		
 		if time.time()-tic>=60*5:
 			#every 5 minutes the Home comfort is checked 
+			HSControl.CatalogCommunication()
 			HSControl.controlStrategy()
 			tic=time.time()
 
