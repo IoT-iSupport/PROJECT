@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from myMQTT import *
+from MyMQTT import *
 import random
 import threading
 import requests
@@ -19,6 +19,8 @@ class DeviceConnector():
 		self.clientID = clientID
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopicS=f"{baseTopic}{patient}/actuators"
+		self.broker=''
+		self.port=0
 		self.__message={
 			'patientID':self.patient, 
 			'bn':'',
@@ -32,7 +34,7 @@ class DeviceConnector():
 		self.status_light=0 #for the lights
 
 	def RESTCommunication(self,filename):
-		CONNECTED_DEVICES = json.load(open(filename))
+		self.connected_devices = json.load(open(filename))
 		
 		self.t={}
 		#t model:
@@ -40,7 +42,7 @@ class DeviceConnector():
 		# "Light": "iSupport/1/actuators/Light",
 		# "Air": "iSupport/1/actuators/Air"
 		# }
-		for item in CONNECTED_DEVICES["Actuators"]:
+		for item in self.connected_devices["Actuators"]:
 			for SD in item["servicesDetails"]:
 				if SD["serviceType"]=='MQTT':
 					for topic in SD["topic"]:
@@ -48,7 +50,7 @@ class DeviceConnector():
 						value = topic
 						self.t[key]=value
 
-		for device in CONNECTED_DEVICES["Sensors"]+CONNECTED_DEVICES["Actuators"]:
+		for device in self.connected_devices["Sensors"]+self.connected_devices["Actuators"]:
 			r=requests.get(self.CATALOG_URL+f'/deviceID/{device["deviceID"]}') #retrive the device 
 			if r.text=='':
 				#new Registration
@@ -60,15 +62,19 @@ class DeviceConnector():
 	def MQTTinfoRequest(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
-			if not self.broker == r.json()["IPandress"] or not self.port == r.json()["port"]: #if the broker is changed
-				self.broker = r.json()["IPandress"]
+			print('if MQTTinfoRequest')
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
+				print(self.port)
 				self.client.stop()
 				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 				self.start()
 			
 		else:
-			self.broker = r.json()["IPandress"]
+			print('else MQTTinfoRequest')
+			self.broker = r.json()["IPaddress"]
+			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 			self.start()
 
@@ -76,12 +82,12 @@ class DeviceConnector():
 	#Solo per noi per aggiungere i devices alla lista dei connessi
 	# def insertNewDevice(self,newDevice):
 	# 	#insert a new device (json data type) into the catalog exploiting REST Web Services
-	# 	CONNECTED_DEVICES[].append(json.loads(newDevice))
-	# 	#print(CONNECTED_DEVICES)
+	# 	self.connected_devices[].append(json.loads(newDevice))
+	# 	#print(self.connected_devices)
 	
 	def start(self):
 		self.client.start()
-		for topic in self.t["topic"]:
+		for topic in self.t.values():
 			self.client.mySubscribe(topic)
 
 	def stop(self):
@@ -89,7 +95,7 @@ class DeviceConnector():
 
 	def publish(self,range_hr,flag_temp,flag_motion): #range_hr è per resting/danger/sport per HR, flag_temp per generare temp e hum fuori dai range "normali" (o normale, 1 altrimenti)
 		#flag_motion=1/0 on(pff)
-		for d in CONNECTED_DEVICES["Sensors"]:
+		for d in self.connected_devices["Sensors"]:
 		
 			print(f'Message structure: {self.__message}')
 			print("###############  new Device #############################")
@@ -128,7 +134,7 @@ class DeviceConnector():
 				msg['bn']=d["deviceID"]
 				msg['e']=[{'n':'Temperature','value':a_temp,'timestamp':str(datetime.now()),'u':'C'},{'n':'Humidity','value':a_hum,'timestamp':str(datetime.now()),'u':'%'}]
 
-			elif d["measureType"]==['Heart Rate']: 
+			elif d["measureType"]==['HeartRate']: 
 				msg=dict(self.__message)
 				msg['bn']=d["deviceID"]
 				msg['e'][0]['n']='HeartRate'
@@ -192,20 +198,21 @@ if __name__=="__main__":
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
-	patientID = conf["patientID"]
+	patientID = conf['DeviceConnector']["patientID"]
 	clientID='DeviceConnector'+str(patientID)
-	close(fp)
+	fp.close()
 	
 
 	fp = open("REST.txt") 
 	linesREST=fp.readlines()
-	close(fp)
+	fp.close()
 
 	fp = open("SPORT.txt") 
-	linesSPORT=fpS.readlines()
-	close(fp)
+	linesSPORT=fp.readlines()
+	fp.close()
 
 	dc=DeviceConnector(CATALOG_URL,clientID,patientID,bT,linesREST,linesSPORT)
+	dc.RESTCommunication(sys.argv[2])
 	dc.MQTTinfoRequest()
 	#first step: connection and registration    
 	i=1
@@ -225,4 +232,4 @@ if __name__=="__main__":
 				i=i+1
 		except KeyboardInterrupt: #CRTL+C per cambiare stato 
 			continue
-	dc.stop()	
+	dc.stop()
