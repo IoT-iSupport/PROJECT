@@ -11,109 +11,175 @@
 # •	the Device Connector a actuation command for activating the music player. - da rivalutare
 import json
 import requests
-from myMQTT import *
+from MyMQTT import *
 from statistics import median
 import sys
 
-clientID = 'PatientControl'
+
 # endTopic = ['HeartRate','Accelerometer']
 
 class PatientControl():
-	def __init__(self,CATALOG_URL,baseTopic,endTopic):
-		self.endTopic = endTopic
+	def __init__(self,CATALOG_URL,baseTopic,clientID):
+		#self.endTopic = endTopic
 		self.dict=[] # the windows are filled until the 10*60/60s = 10 samp
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
+		self.ReadBaseUrl= "https://api.thingspeak.com/channels/"
 		self.jump=0
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = baseTopic
+		self.clientID=clientID
+		self.broker=''
+		self.token=0
 
 	def start(self):
 		self.client.start()
-		for t in self.endTopic:
-			topic=f'{self.baseTopic}+/sensors/'+t
-			self.client.mySubscribe(topic)
+		# for t in self.endTopic:
+		# 	topic=f'{self.baseTopic}+/sensors/'+t
+		# 	self.client.mySubscribe(topic)
 
-	def notify(self,topic,payload):
-		payload=json.loads(payload)
-		topic=topic.split('/')
-		id=int(topic[1]) 
+	# def notify(self,topic,payload):
+	# 	payload=json.loads(payload)
+	# 	topic=topic.split('/')
+	# 	id=int(topic[1]) 
 
-		for patient in self.dict:
-			if int(patient["patientID"])==id:
-				if topic[3]=='HeartRate':
-					if len(patient["windowHR"])==len(patient["windowACC"]):
-						patient["windowHR"].append(payload["e"][0]["value"])
-					else:
-						patient["windowHR"].pop()
-						patient["windowHR"].append(payload["e"][0]["value"])
-				elif topic[3]=='Accelerometer':
-					if len(patient["windowHR"])-1==len(patient["windowACC"]):
-						#if it has recieved a HR measurement first
-						patient["windowACC"].append(payload["e"][0]["value"])
-					else:
-						print(f'lenHR: {len(patient["windowHR"])}, \n lenACC: {len(patient["windowACC"])}')
-						#if not, the couple HR-ACC of the same time is not recorded. So Discard the HR measure
-						patient["windowHR"].pop()
-				print(f'Patient: {patient["patientID"]}, windows: {patient["windowHR"]},{patient["windowACC"]}\n')
+	# 	for patient in self.dict:
+	# 		if int(patient["patientID"])==id:
+	# 			if topic[3]=='HeartRate':
+	# 				if len(patient["windowHR"])==len(patient["windowACC"]):
+	# 					patient["windowHR"].append(payload["e"][0]["value"])
+	# 				else:
+	# 					patient["windowHR"].pop()
+	# 					patient["windowHR"].append(payload["e"][0]["value"])
+	# 			elif topic[3]=='Accelerometer':
+	# 				if len(patient["windowHR"])-1==len(patient["windowACC"]):
+	# 					#if it has recieved a HR measurement first
+	# 					patient["windowACC"].append(payload["e"][0]["value"])
+	# 				else:
+	# 					print(f'lenHR: {len(patient["windowHR"])}, \n lenACC: {len(patient["windowACC"])}')
+	# 					#if not, the couple HR-ACC of the same time is not recorded. So Discard the HR measure
+	# 					patient["windowHR"].pop()
+	# 			print(f'Patient: {patient["patientID"]}, windows: {patient["windowHR"]},{patient["windowACC"]}\n')
 
 	def controlStrategy(self):
 		#removing of the first Measure and windows control
 		for patient in self.dict:
-			l=len(patient["windowHR"])
-			if l>=10 or len(patient["windowACC"])>=10: 
+			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/1.json?minutes=10'
+			r=requests.get(url) #retrive 10 minutes Accelerometer data
+			body=r.json()
+			#print(body)
+			
+			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/2.json?minutes=10'
+			r=requests.get(url) #retrive 10 minutes HR data
+			body2=r.json()
+
+			if body!=-1 and body2!=-1: #data retived correctly
+				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ]
+				patient["windowACC"] = [float(item["field2"]) for item in body2["feeds"] if item["field2"]!=None ]
+				# for item in body["feeds"]:
+				# 	patient["windowHR"].append(item["field1"])
+				# for item in body2["feeds"]:
+				# 	patient["windowACC"].append(item["field2"])
+
+				print(patient["windowHR"])
+				print(patient["windowACC"])
+
 				if not 'lastHR' in patient: #first window observed: no comparing for the first observation
 					patient['lastHR']=median(patient["windowHR"])
 					patient['lastACC']=median(patient["windowACC"])
-				else:
-					while patient["windowHR"]!=10:
-						patient["windowHR"].pop(0) 
-					while patient["windowACC"]!=10:
-						patient["windowACC"].pop(0) 
-					print(len(patient["windowACC"]))
-					if median(patient["windowHR"]) > 1.5*patient['lastHR']:
-						print('Condizione HR fatta')
-						if median(patient["windowACC"]) < 1.2*patient['lastACC']:
-							print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
-							url=f'{self.WriteBaseUrl}{patient["apikey"]}&field4=1' #for collecting panik attack event
-							r=requests.get(url) #ThingSpeak request for panik attack event
-							print(url)
-							msg={"patientID":patient["patientID"],"alertStatus":1}
-							topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
-							self.client.myPublish(topicTelegram,msg) #message to the care giver and the doctor of the patient for the panik attack event
-							#publish per il Device Connector per la musica (?)
+				
+				if median(patient["windowHR"]) > 1.5*patient['lastHR']:
+					print('Condizione HR fatta')
+					if median(patient["windowACC"]) < 1.2*patient['lastACC']:
+						print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
+						url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
+						r=requests.get(url) #ThingSpeak request for panik attack event
+						print(url)
+						msg={"patientID":patient["patientID"],"alertStatus":1}
+						topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
+						self.client.myPublish(topicTelegram,msg)
+				
+				patient['lastHR']=median(patient["windowHR"])
+				patient['lastACC']=median(patient["windowACC"])
+				# patient["windowHR"]=[]
+				# patient["windowACC"]=[]
+
+			# l=len(patient["windowHR"])
+			# if l>=10 or len(patient["windowACC"])>=10: 
+			# 	if not 'lastHR' in patient: #first window observed: no comparing for the first observation
+			# 		patient['lastHR']=median(patient["windowHR"])
+			# 		patient['lastACC']=median(patient["windowACC"])
+			# 	else:
+			# 		while patient["windowHR"]!=10:
+			# 			patient["windowHR"].pop(0) 
+			# 		while patient["windowACC"]!=10:
+			# 			patient["windowACC"].pop(0) 
+			# 		print(len(patient["windowACC"]))
+			# 		if median(patient["windowHR"]) > 1.5*patient['lastHR']:
+			# 			print('Condizione HR fatta')
+			# 			if median(patient["windowACC"]) < 1.2*patient['lastACC']:
+			# 				print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
+			# 				url=f'{self.WriteBaseUrl}{patient["apikey"]}&field4=1' #for collecting panik attack event
+			# 				r=requests.get(url) #ThingSpeak request for panik attack event
+			# 				print(url)
+			# 				msg={"patientID":patient["patientID"],"alertStatus":1}
+			# 				topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
+			# 				self.client.myPublish(topicTelegram,msg) #message to the care giver and the doctor of the patient for the panik attack event
+			# 				#publish per il Device Connector per la musica (?)
 
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
-		body=r.json()
-		broker=body["IPaddress"]
-		port=body["port"]
-		r=requests.get(self.CATALOG_URL+f'/token') 
-		body=r.json()
-		self.token=body
+		if self.broker and self.port:
+			print('if CatalogCommunication')
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPaddress"]
+				self.port = r.json()["port"]
+				self.client.stop()
+				self.client=MyMQTT(self.clientID,self.broker,self.port)
+				self.start()	
+		else:
+			print('else CatalogCommunication')
+			self.broker = r.json()["IPaddress"]
+			self.port = r.json()["port"]
+			self.client=MyMQTT(self.clientID,self.broker,self.port)
+			self.start()
+
+		r=requests.get(self.CATALOG_URL+f'/token')
+		if self.token:
+			if not self.token== r.json():
+				self.token=r.json()
+		else:
+			self.token=r.json()
+
 		#patients information
 		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
+		patient_ID_list=[ID["patientID"] for ID in self.dict]
 		for item in body2:
-			new_patient={"patientID":item["patientID"], "apikey": item["apikey"][0],"windowHR":[],"windowACC":[]}
-			self.dict.append(new_patient)
-		self.client=MyMQTT(clientID,broker,port,self) 
+			if not item["patientID"] in patient_ID_list:
+				new_patient={"patientID":item["patientID"], "channel":item["channel"], "apikeyWrite": item["apikey"][0],"apikeyRead": item["apikey"][1],"windowHR":[],"windowACC":[]}
+				self.dict.append(new_patient)
+			
 
 if __name__=="__main__":
 	fp = open(sys.argv[1])
+	#fp='Configuration_file.json'
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
-	endTopic = conf["PatientControl"]["endTopic"]
-	close(fp)
+	#endTopic = conf["PatientControl"]["endTopic"]
+	clientID = conf["PatientControl"]["clientID"]
+	print(clientID)
+	fp.close()
 	
-	PC=PatientControl(CATALOG_URL,bT,endTopic)
+	PC=PatientControl(CATALOG_URL,bT,clientID)
 	PC.CatalogCommunication()
-	PC.start()
 	tic=time.time()
 	while True:
 		if time.time()-tic>=120:
+			PC.CatalogCommunication()
 			PC.controlStrategy()
 			tic=time.time()
-
+	
+	
 	
