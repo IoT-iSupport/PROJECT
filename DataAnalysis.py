@@ -25,7 +25,7 @@ class DataAnalysis():
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
 		self.ReadBaseUrl="https://api.thingspeak.com/channels/"
 		self.broker=''
-		self.port=0
+		self.port= 0 
 
 	def start(self):
 		self.client.start() 
@@ -36,67 +36,66 @@ class DataAnalysis():
 	#patient={"patientID":int(item["patientID"]),"apikey":item["apikey"],"channel":item["channel"],"day":0,"min_value":[],"max_value":[],"mean_value":[]}	
 			
 	def notify(self,topic,payload):
-		print('Hello')
 		#It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor
-		#weekly report of average heart rate in time bands of the day; 3 Time bands
+
+		#weekly report of average heart rate 
 		payload=json.loads(payload)
 		id=int(topic.split("/")[1])
-		for i,pat in enumerate(self.list_dict):
+		for i,pat in enumerate(self.list_dict): 
 			if id==pat["patientID"]:
 				pos=i
-
 		if topic.split("/")[3]=="weekly":
 			bodyHR=payload["HeartRate"]
 			print(f'\nHR: {bodyHR}\n')
 			bodyACC=payload["Accelerometer"]
 			print(f'ACC:{bodyACC}\n')
 			bodyMOT=payload["Motion"]
-			self.list_dict[pos]["Weekly Measurements"]["day"]=self.list_dict[pos]["Weekly Measurements"]["day"]+1
+			self.list_dict[pos]["Weekly Measurements"]["day"] += 1
 			for feed in bodyHR:
 				date=feed["date"].split("T")[1].split(":") #we care about the hour (date[0])
-				if int(date[0])<=8:
-					if self.list_dict[pos]["Weekly Measurements"]["min_value"][0]>float(feed["value"]):
+				#the HR measureament are divided into 3 time slots (0-8/8-19/19-24):
+				if int(date[0])<=8: 
+					if self.list_dict[pos]["Weekly Measurements"]["min_value"][0]>float(feed["value"]): #greater than
 						self.list_dict[pos]["Weekly Measurements"]["min_value"][0]=float(feed["value"])
-					if self.list_dict[pos]["Weekly Measurements"]["max_value"][0]<float(feed["value"]):
+					if self.list_dict[pos]["Weekly Measurements"]["max_value"][0]<float(feed["value"]): #minor than
 						self.list_dict[pos]["Weekly Measurements"]["max_value"][0]=float(feed["value"])
+					#summing all the measureament (the division for obtaining the mean value is done before publishing )
 					self.list_dict[pos]["Weekly Measurements"]["mean_value"][0]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][0]+float(feed["value"])
 				elif int(date[0])<=19:
-					if self.list_dict[pos]["Weekly Measurements"]["min_value"][1]>float(feed["value"]):
+					if self.list_dict[pos]["Weekly Measurements"]["min_value"][1]>float(feed["value"]):#greater than
 						self.list_dict[pos]["Weekly Measurements"]["min_value"][1]=float(feed["value"])
-					if self.list_dict[pos]["Weekly Measurements"]["max_value"][1]<float(feed["value"]):
+					if self.list_dict[pos]["Weekly Measurements"]["max_value"][1]<float(feed["value"]):#minor than
 						self.list_dict[pos]["Weekly Measurements"]["max_value"][1]=float(feed["value"])
 					self.list_dict[pos]["Weekly Measurements"]["mean_value"][1]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][1]+float(feed["value"])
 				else: #int(date[0])<24:
-					if self.list_dict[pos]["Weekly Measurements"]["min_value"][2]>float(feed["value"]):
+					if self.list_dict[pos]["Weekly Measurements"]["min_value"][2]>float(feed["value"]):#greater than
 						self.list_dict[pos]["Weekly Measurements"]["min_value"][2]=float(feed["value"])
-					if self.list_dict[pos]["Weekly Measurements"]["max_value"][2]<float(feed["value"]):
+					if self.list_dict[pos]["Weekly Measurements"]["max_value"][2]<float(feed["value"]):#minor than
 						self.list_dict[pos]["Weekly Measurements"]["max_value"][2]=float(feed["value"])
 					self.list_dict[pos]["Weekly Measurements"]["mean_value"][2]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][2]+float(feed["value"])
 			
-			if len(bodyACC)==len(bodyHR)-1: 
-				bodyHR.pop()
-			#chiedere: dobbiamo studiare anche la possibilità che uno dei due sensori si stacca e adesempio la registrazione è interrotta per mezz"ora?
-			
-			for feedACC,feedHR in bodyACC,bodyHR:
+			#activity report of the patient
+			temp = []
+			for feedACC,feedHR in zip(bodyACC,bodyHR):
 				if float(feedACC["value"])>2: #first threshold
-					temp.append(float(feedHR))
+					temp.append(float(feedHR["value"]))
 				else:
-					if len(temp)>=5:  #consider only at least 5 samples length activity over threshold
+					if len(temp)>=5:  #consider at least 5 consecutive samples length activity over threshold
 						#evaluate the activity status:
 						if statistics.mean(temp)<80:
-							self.list_dict[pos]["activity"][0]+=len(temp)
+							self.list_dict[pos]["Weekly Measurements"]["activity"][0]+=len(temp)
 						elif statistics.mean(temp)<120:
-							self.list_dict[pos]["activity"][1]+=len(temp)
+							self.list_dict[pos]["Weekly Measurements"]["activity"][1]+=len(temp)
 						else:
-							self.list_dict[pos]["activity"][2]+=len(temp)
+							self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
 					temp=[]	
 			
-			#chiedere: abbiamo un solo motion sensor 
 			#weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door 
-			self.list_dict[pos]["bedroomstatus"][1]+=len(bodyMOT) #total number of samples
-			for item in bodyMOT:
-				if item["value"]==1:
-					self.list_dict[pos]["bedroomstatus"][0]+=1 #number of Motion detection
+			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][1]+=len(bodyMOT) #total number of samples
+			# for item in bodyMOT:
+			# 	if item["value"]==1:
+			# 		self.list_dict[pos]["bedroomstatus"][0]+=1 #number of Motion detection
+			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][0] = sum([float(item["value"]) for item in bodyMOT if item["value"]!=None])
 
 			if self.list_dict[pos]["day"]==7:
 				self.publish(id,"weekly")
@@ -109,7 +108,7 @@ class DataAnalysis():
 
 		else: #recurrence of panic attacks 
 			self.list_dict[pos]["Monthly Measurements"]["day"]+=1
-			self.list_dict[pos]["Monthly Measurements"]["panik attack"]+=payload["Number of panik attack"]
+			self.list_dict[pos]["Monthly Measurements"]["panik attack"]+=float(payload["Number of panik attack"])
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
 				self.publish(id,"monthly")
 				self.list_dict[pos]["Monthly Measurements"]["day"]=0
@@ -120,23 +119,23 @@ class DataAnalysis():
 		
 		if command=='weekly':
 			activity=self.list_dict[i]["Weekly Measurements"]["activity"]
-			bed=self.list_dict[i]["Weekly Measurements"]["bedroom status"]
+			bed=self.list_dict[i]["Weekly Measurements"]["bedroomstatus"]
 			payload={"patientID":id,
 			"average heart rate":{
 				"min_value":self.list_dict[i]["Weekly Measurements"]["min_value"],
 				"max_value":self.list_dict[i]["Weekly Measurements"]["max_value"],
 				"mean_value":self.list_dict[i]["Weekly Measurements"]["mean_value"]
 				},
-			"activity status":[a/sum(activity)*100 for a in activity],
+			"activity":[a/sum(activity)*100 for a in activity],
 			"bedroomMotion":bed[0]/bed[1]
 			}
 			self.client.myPublish(topic, payload) 
 
 		elif command=='monthly':
-			payload={"patientID":id,
+			payload2={"patientID":id,
 			"Panik Attack":self.list_dict[i]["Monthly Measurements"]["panik attack"]
 			}
-			self.client.myPublish(topic, payload)
+			self.client.myPublish(topic, payload2)
 			
 
 	
@@ -187,7 +186,7 @@ class DataAnalysis():
 					if patient["patientID"]==item["patientID"]:
 						patient["PatientInfo"]["apikey"]=item["apikey"] #... update apikey and channel
 						patient["PatientInfo"]["channel"]=item["channel"]			
-
+		print(self.list_dict)
 if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
@@ -197,7 +196,7 @@ if __name__=="__main__":
 	fp.close()
 
 	D=DataAnalysis(CATALOG_URL,bT,clientID)
-	D.CatalogCommunication()
+	
 	while True:
 		D.CatalogCommunication()
 		time.sleep(120)

@@ -1,4 +1,4 @@
-from myMQTT import *
+from MyMQTT import *
 import json
 import requests
 from datetime import datetime
@@ -6,21 +6,16 @@ from datetime import datetime
 # from datetime import strftime
 #is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer). 
 # It works as a MQTT publisher for sending data from storage (ThingSpeak) to the “Data Analysis”. 
-CATALOG_URL='http://127.0.0.1:8080'
-clientID='TSAdaptor'
-endTopic=['HeartRate','Accelerometer','Motion']
+
 class ThingSpeakGateway():
-	def __init__(self):
-		self.apikeysW=[]
-		self.apikeysR=[]
-		self.patients=[]
-		self.channels=[]
-		self.CatalogCommunication()
+	def __init__(self,clientID,endTopic):
+		self.clientID = clientID
+		self.endTopic = endTopic
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
 		self.ReadBaseUrl="https://api.thingspeak.com/channels/"
 		#1264245/feeds.json?api_key=8GB6GHSYYF6AIB98&results=2"
 		self.client=MyMQTT(clientID,self.broker,self.port,self) #cration of MQTT subscribers
-		self.tic=time.time()
+
 	def start(self):
 		self.client.start()
 		for t in endTopic:
@@ -121,28 +116,56 @@ class ThingSpeakGateway():
 
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
-		r=requests.get(CATALOG_URL+f'/broker') 
-		body=r.json()
-		self.broker=body["IPaddress"]
-		self.port=body["port"]
+		r=requests.get(self.CATALOG_URL+f'/broker') 
+		if self.broker and self.port:
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPaddress"]
+				self.port = r.json()["port"]
+				self.client.stop()
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+				self.start()	
+		else:
+			print('else CatalogCommunication')
+			self.broker = r.json()["IPaddress"]
+			self.port = r.json()["port"]
+			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+			self.start()
+
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
 		for item in body2:
-			self.apikeysW.append(item["apikey"][0])
-			self.apikeysR.append(item["apikey"][1])
-			self.patients.append(int(item["patientID"]))
-			self.channels.append(item["channel"])	
-		print(self.patients)
+			for i,patient in enumerate(self.patients):
+				if patient == int(item["patientID"]):
+					if not item["apikey"][0] == self.apikeysW[i]:
+						self.apikeysW[i] = item["apikey"][0]
+					if not item["apikey"][1] == self.apikeysR[i]:
+						self.apikeysR[i] = item["apikey"][1]
+					if not item["channel"] == self.channels[i]:
+						self.channels[i] = item["channel"]
+				else:
+					self.apikeysW.append(item["apikey"][0])
+					self.apikeysR.append(item["apikey"][1])
+					self.patients.append(int(item["patientID"]))
+					self.channels.append(item["channel"])	
 		# self.timestamp=len(self.patients)*[0]
 		# print(self.timestamp)	
 
 if __name__=="__main__":
-	gateway=ThingSpeakGateway()
-	gateway.start()
+	fp = open(sys.argv[1])
+	conf = json.load(fp)
+	CATALOG_URL = conf["Catalog_url"]
+	bT = conf["baseTopic"] 
+	clientID=conf["ThingSpeakAdaptor"]["clientID"]
+	endTopic = conf["ThingSpeakAdaptor"]["endTopic"]
+	fp.close()
+
+	gateway=ThingSpeakGateway(clientID,endTopic)
+	
 	flag=True
 	while True:
 		today= datetime.now()
-		if today.hour==18 and flag: #Monday condition, It has to enter in the condition once a day
+		gateway.CatalogCommunication()
+		if today.hour==17 and flag: #Monday condition, It has to enter in the condition once a day
 			gateway.publish()
 			flag=False
 		elif today.hour==0: #Next day the flag is restored to True
