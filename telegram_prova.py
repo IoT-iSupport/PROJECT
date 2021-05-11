@@ -20,19 +20,26 @@ class MQTTbot:
 		content_type, chat_type, chat_ID = telepot.glance(msg)
 		print(chat_ID)
 		message = msg['text']
-		flag=0
+		flag,flag1 = 0,0
 		if message=="/start":
-		   	self.bot.sendMessage(chat_ID, text="Welcome!\nEnter the patientID")
+		   	self.bot.sendMessage(chat_ID, text="Welcome!\nIf you want to add a new patient, enter the patientID:")
 		elif message.isdigit():
 			for patient in self.dict:
 				if int(patient["patientID"])==int(message):
-					r=requests.get(self.CATALOG_URL+f"/chatIDs/{int(message)}")
-					body=r.json()
-					patient["chatIDs"]=body["chatIDs"]
-					print(self.dict)
-					self.bot.sendMessage(chat_ID, text="Added")
+					for item in patient["chatID"]:
+						if item == chat_ID:
+							self.bot.sendMessage(chat_ID, text=f"Patient {message} ALREADY connected with your bot.")	
+							flag1 = 1
+					if flag1 == 0:
+						catalog_data = {"chatID": chat_ID}
+						r=requests.post(self.CATALOG_URL+f"/chatID/{patient['patientID']}",json=json.dumps(catalog_data))
+						print(r.status_code)
+						if r.status_code == 200:
+							self.bot.sendMessage(chat_ID, text=f"Patient {message} connected with your bot.")
+						else:
+							self.bot.sendMessage(chat_ID, text = f'Retry')
 					flag=1
-			if flag==0:
+			if flag == 0 or flag1 == 0:
 				self.bot.sendMessage(chat_ID, text="No Patient found, retry\nEnter the patientID:")
 		else:
 			self.bot.sendMessage(chat_ID, text="Command not supported")
@@ -75,15 +82,16 @@ class MQTTbot:
 		self.client.mySubscribe(TOPIC)
 		self.bot = telepot.Bot(self.token)
 		MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
+		print(TOPIC)
 
 if __name__ == "__main__":
-	 fp = open(sys.argv[1])
+	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
-	close(fp)
+	fp.close()
 
-    tb=MQTTbot(CATALOG_URL,bT)
+	tb=MQTTbot(CATALOG_URL,bT)
 	input("press a key to start...")
 	tb.CatalogCommunication()
 	while True:
