@@ -3,7 +3,7 @@
     "clientID": "",
     "baseTopic":"iSupport/",
     "DeviceConnector":{
-        "PatientID": 1
+        "patientID": 1
     },
     "PatientControl":{
         "clientID" : "PatientControlMS",
@@ -21,9 +21,12 @@
         "endTopic":["HeartRate","Accelerometer","Motion", "Temperature", "Humidity"],
         "WriteBaseUrl":"https://api.thingspeak.com/update?api_key=",
         "ReadBaseUrl": "https://api.thingspeak.com/channels/"
-    }
+    },
     "DataAnalysis":{
         "clientID":"DataAnalysisMS"
-    }
+    },
+    "LightShift":{
+        "clientID":"LigthShiftMS"
+    }    
 
 }
