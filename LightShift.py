@@ -4,18 +4,15 @@ from myMQTT import *
 from datetime import datetime
 import sys
 
-clientID='LigthShiftMS'
-
 class LigthShift():
-	def __init__(self,CATALOG_URL,bT):
+	def __init__(self,CATALOG_URL,bT,clientID):
 		self.dict=[] 
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = bT
-		r=requests.get(self.CATALOG_URL+f'/broker') 
-		body=r.json()
+		self.clientID=clientID
 		self.broker=body["IPaddress"]
 		self.port=body["port"]
-		self.client=MyMQTT(clientID,self.broker,self.port,self) 
+		self.client=MyMQTT(self.clientID,self.broker,self.port,self) 
 
 	def start(self):
 		self.client.start()
@@ -58,35 +55,37 @@ class LigthShift():
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
-		if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
-			self.broker = r.json()["IPaddress"]
-			self.port = r.json()["port"]
-			self.client.stop()
-			self.client=MyMQTT(clientID,self.broker,self.port,self)
-			self.start()
+		if self.broker and self.port:
+			print('if CatalogCommunication')
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
+				self.broker = r.json()["IPaddress"]
+				self.port = r.json()["port"]
+				self.client.stop()
+				self.client=MyMQTT(self.clientID,self.broker,self.port)
+				self.start()
 		
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
+		patient_ID_list=[ID["patientID"] for ID in self.dict]
 		for item in body2:
-			present=0
-			for patient in self.dict:
-				if item["patientID"]==patient["patientID"]:
-					present=1
-					patient["time"]=item["LightsSchedule]
-			if present==0: #aggiungo il paziente solo se non è già presente
+			if not item["patientID"] in patient_ID_list:
 				new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #status: 0 off, status: 1 on
 				self.dict.append(new_patient)
-				#print(self.dict)
+			else:
+				for patient in self.dict:
+					if patient["patientID"]==item["patientID"]:
+						patient["LightsSchedule"]=item["LightsSchedule"]
 		
 
 if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
-	bT = conf["baseTopic"] 
+	bT = conf["baseTopic"]
+	clientID=conf["clientID"] 
 	fp.close()
 
-	LS=LigthShift(CATALOG_URL,bT)
+	LS=LigthShift(CATALOG_URL,bT,clientID)
 	LS.start()
 	
 	while True:
