@@ -73,7 +73,7 @@ class Catalog():
 				json_body["lastUpdate"]=time.time()
 				self.patients.append(json_body)
 				self.save()
-			#Add doctor telegram chatID 
+			#Add doctor/care giver telegram chatID 
 			elif uri[0] == 'chatID':
 				print(json_body)
 				print(type(json_body))
