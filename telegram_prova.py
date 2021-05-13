@@ -96,6 +96,10 @@ class MQTTbot:
 				self.token=r.json()
 				self.bot = telepot.Bot(self.token)
 				MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
+		else:
+			self.token=r.json()
+			self.bot = telepot.Bot(self.token)
+			MessageLoop(self.bot, {'chat': self.on_chat_message}).run_as_thread()
 		
 		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
