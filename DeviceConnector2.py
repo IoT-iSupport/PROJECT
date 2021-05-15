@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from MyMQTT import *
 import random
-import threading
 import requests
 import numpy as np
 from random import choice
