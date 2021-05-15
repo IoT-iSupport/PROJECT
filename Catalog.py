@@ -75,17 +75,9 @@ class Catalog():
 				self.save()
 			#Add doctor/care giver telegram chatID 
 			elif uri[0] == 'chatID':
-				print(json_body)
-				print(type(json_body))
 				for i,patient in enumerate(self.patients):
 					if int(uri[1])==int(patient["patientID"]):
-						print(patient)
-						json_body = json.loads(json_body) #perchè dovrei rimetterlo????? Secondo me non serve
-						print(type(json_body))
 						patient["telegramIDs"].append(json_body["chatID"])
-						print(patient["telegramIDs"],i)
-						#self.patients.pop(i) #Non servono
-						#self.patients.append(patient)
 						self.save()
 						print(self.patients)
 			else:
