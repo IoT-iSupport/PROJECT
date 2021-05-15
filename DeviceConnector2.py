@@ -124,7 +124,7 @@ class DeviceConnector():
 						a_temp=random.uniform(18,26)
 						if 18<=a_temp<=23:
 							a_hum=random.uniform(40,50)					
-						elif 24<=a_temp<=26:
+						elif 23<a_temp<=26:
 							a_hum=random.uniform(50,60)	
 					elif flag_temp==1: #temperatura out of range
 						a=np.arange(0,17,0.2)
@@ -223,7 +223,7 @@ if __name__=="__main__":
 				       
 	#command line argument in position 2 is the CONNECTED_DEVICE.json. Registration of the sensors/actuators			       
 	dc.RESTCommunication(sys.argv[2])
-	#retreive broker/port information, create and the client
+	#retreive broker/port information, create and start the client
 	dc.MQTTinfoRequest()
 	 
 	i=1
