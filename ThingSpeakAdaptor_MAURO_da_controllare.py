@@ -174,8 +174,11 @@ class ThingSpeakGateway():
 
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
+		
 		for item in body2:
+			found = 0
 			for i,patient in enumerate(self.patients):
+				print(patient)
 				if patient == int(item["patientID"]):
 					if not item["apikey"][0] == self.apikeysW[i]:
 						self.apikeysW[i] = item["apikey"][0]
@@ -183,13 +186,12 @@ class ThingSpeakGateway():
 						self.apikeysR[i] = item["apikey"][1]
 					if not item["channel"] == self.channels[i]:
 						self.channels[i] = item["channel"]
-				else: #new patient
-					self.apikeysW.append(item["apikey"][0])
-					self.apikeysR.append(item["apikey"][1])
-					self.patients.append(int(item["patientID"]))
-					self.channels.append(item["channel"])	
-		# self.timestamp=len(self.patients)*[0]
-		# print(self.timestamp)	
+					found = 1
+			if found == 0: #new patient
+				self.apikeysW.append(item["apikey"][0])
+				self.apikeysR.append(item["apikey"][1])
+				self.patients.append(int(item["patientID"]))
+				self.channels.append(item["channel"])	
 
 if __name__=="__main__":
 
