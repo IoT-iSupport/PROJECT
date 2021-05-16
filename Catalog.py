@@ -36,7 +36,7 @@ class Catalog():
 			elif uri[0]=='patients':
 				output=[]
 				for p in self.patients:
-					item={"patientID":p["patientID"],"apikey":[i for i in p["thingspeakInfo"]["apikeys"]],"channel":p["thingspeakInfo"]["channel"],"LightsSchedule":p["LightsSchedule"]}
+					item={"patientID":p["patientID"],"apikey":[i for i in p["thingspeakInfo"]["apikeys"]],"channel":p["thingspeakInfo"]["channel"],"LightsSchedule":p["LightsSchedule"],"telegramIDs":p["telegramIDs"]}
 					output.append(item)
 				print(f'The patient is: {output}')
 				return json.dumps(output,indent=4)
@@ -59,7 +59,7 @@ class Catalog():
 	def POST(self,*uri):
 		uri=list(uri)
 		json_body = json.loads(cherrypy.request.body.read())
-		
+		print(type(json_body))
 		if not len(uri):
 			raise cherrypy.HTTPError(400,"Bad Request")
 		else:
@@ -75,7 +75,7 @@ class Catalog():
 				self.save()
 			#Add doctor/care giver telegram chatID 
 			elif uri[0] == 'chatID':
-				for i,patient in enumerate(self.patients):
+				for patient in self.patients:
 					if int(uri[1])==int(patient["patientID"]):
 						patient["telegramIDs"].append(json_body["chatID"])
 						self.save()
@@ -96,9 +96,9 @@ class Catalog():
 			elif uri[0]=='device':
 				for item in self.devices:
 					if item['deviceID']==json_body["deviceID"]:
-						for k in json_body:
+						for k in json_body: # update device information 
 							item[k]=json_body[k]
-						item["lastUpdate"]=time.time()
+						item["lastUpdate"]=time.time() # always update "lastUpdate"
 				self.save()        
 			else:
 				raise cherrypy.HTTPError(404,"Not Found")
@@ -121,7 +121,7 @@ class Catalog():
 				if time.time()>device["lastUpdate"]+120:
 					print(f'Removed deviceID: {device["deviceID"]}')
 					ind.append(i) #append all the indexes of the devices to be removed
-			#remove devices and save
+			#remove devices starting from the last one and save
 			for i in list(reversed(ind)):
 				self.devices.pop(i)        
 			self.save()
@@ -139,10 +139,10 @@ if __name__ == "__main__":
 	cherrypy.engine.start()
 	while True:
 		try:
-			while True:
-				#checking the connection of the device in the list
-				c.aliveChecker()
-				time.sleep(60)
+			#while True:
+			#checking the connection of the device in the list
+			c.aliveChecker()
+			time.sleep(60)
 		except KeyboardInterrupt:
 			False
 	cherrypy.engine.block()
