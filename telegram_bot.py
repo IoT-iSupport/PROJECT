@@ -36,6 +36,7 @@ class MQTTbot:
 							flag1 = 1
 					if flag1 == 0:
 						catalog_data = {"chatID": chat_ID}
+						patient["chatID"].append(chat_ID)
 						r=requests.post(self.CATALOG_URL+f"/chatID/{patient['patientID']}",json=catalog_data)
 						print(r.status_code)
 						if r.status_code == 200:
