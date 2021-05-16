@@ -97,7 +97,7 @@ class DataAnalysis():
 			# 		self.list_dict[pos]["bedroomstatus"][0]+=1 #number of Motion detection
 			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][0] = sum([float(item["value"]) for item in bodyMOT if item["value"]!=None])
 
-			if self.list_dict[pos]["day"]==7:
+			if self.list_dict[pos]["Weekly Measurements"]["day"]==7:
 				self.publish(id,"weekly")
 				self.list_dict[pos]["Weekly Measurements"]["min_value"]=[1000]*3
 				self.list_dict[pos]["Weekly Measurements"]["max_value"]=[0]*3
