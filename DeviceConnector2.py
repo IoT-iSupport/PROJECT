@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from MyMQTT import *
+from myMQTT import *
 import random
 import requests
 import numpy as np
