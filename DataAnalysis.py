@@ -84,7 +84,7 @@ class DataAnalysis():
 						#evaluate the activity status:
 						if statistics.mean(temp)<80:
 							self.list_dict[pos]["Weekly Measurements"]["activity"][0]+=len(temp)
-						elif statistics.mean(temp)<120:
+						elif 80<statistics.mean(temp)<120:
 							self.list_dict[pos]["Weekly Measurements"]["activity"][1]+=len(temp)
 						else:
 							self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
@@ -105,6 +105,8 @@ class DataAnalysis():
 				self.list_dict[pos]["Weekly Measurements"]["day"]=0
 				self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"]=[0]*2
 				self.list_dict[pos]["Weekly Measurements"]["activity"]=[0]*3
+			# elif  self.list_dict[pos]["Weekly Measurements"]["day"]==1:
+			# 	self.publish(id,"weekly")
 
 		else: #recurrence of panic attacks 
 			self.list_dict[pos]["Monthly Measurements"]["day"]+=1
@@ -112,28 +114,37 @@ class DataAnalysis():
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
 				self.publish(id,"monthly")
 				self.list_dict[pos]["Monthly Measurements"]["day"]=0
+			# elif self.list_dict[pos]["Monthly Measurements"]["day"]==1:
+			# 	self.publish(id,"monthly")
 			
+
 	def publish(self,id,command):
-		i= [i for i,pat in enumerate(self.list_dict) if id==pat["patientID"]] #it is unique
-		topic=self.DATtopicP_base+str(i)+"/nodered"
-		
+		i= [int(pos) for pos,pat in enumerate(self.list_dict) if id==pat["patientID"]][0] #it is unique
+		topic=self.DATtopicP_base+str(id)+"/nodered"
+		print(topic)
 		if command=='weekly':
 			activity=self.list_dict[i]["Weekly Measurements"]["activity"]
+			try :
+				x =[a/sum(activity)*100 for a in activity]
+			except:
+				x = [0,0,0]
 			bed=self.list_dict[i]["Weekly Measurements"]["bedroomstatus"]
+			bed_output = bed[0]/bed[1]
 			payload={"patientID":id,
 			"average heart rate":{
 				"min_value":self.list_dict[i]["Weekly Measurements"]["min_value"],
 				"max_value":self.list_dict[i]["Weekly Measurements"]["max_value"],
-				"mean_value":self.list_dict[i]["Weekly Measurements"]["mean_value"]
+				"mean_value":[m/sum(self.list_dict[i]["Weekly Measurements"]["mean_value"]) for m in self.list_dict[i]["Weekly Measurements"]["mean_value"]]
 				},
-			"activity":[a/sum(activity)*100 for a in activity],
-			"bedroomMotion":bed[0]/bed[1]
+			"activity":x,
+			"bedroomMotion":bed_output*100
 			}
 			self.client.myPublish(topic, payload) 
 
+
 		elif command=='monthly':
 			payload2={"patientID":id,
-			"Panik Attack":self.list_dict[i]["Monthly Measurements"]["panik attack"]
+			"Panik Attack": self.list_dict[i]["Monthly Measurements"]["panik attack"]
 			}
 			self.client.myPublish(topic, payload2)
 			
@@ -160,9 +171,11 @@ class DataAnalysis():
 		#Retriving information about ThingSpeak API keys
 		r=requests.get(self.CATALOG_URL+f"/patients") 
 		body2=r.json() #lista di dizionari
-		patient_ID_list=[ID["patientID"] for ID in self.list_dict]
+		patient_ID_list=[identifier["patientID"] for identifier in self.list_dict]
+		
 		for item in body2:
-			if not item["patientID"] in patient_ID_list: #if patient not in list_dict...
+			if not int(item["patientID"]) in patient_ID_list: #if patient not in list_dict...
+				
 				patient={"patientID":int(item["patientID"]),
 					"PatientInfo":{
 						"apikey":item["apikey"],

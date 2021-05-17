@@ -79,17 +79,16 @@ class PatientControl():
 				# 	patient["windowHR"].append(item["field1"])
 				# for item in body2["feeds"]:
 				# 	patient["windowACC"].append(item["field2"])
-
-				print(patient["windowHR"])
-				print(patient["windowACC"])
+				
 
 				if not 'lastHR' in patient: #first window observed: no comparing for the first observation
 					patient['lastHR']=median(patient["windowHR"])
 					patient['lastACC']=median(patient["windowACC"])
+					
 				
-				if median(patient["windowHR"]) > 1.5*patient['lastHR']:
+				if median(patient["windowHR"]) > 1.2*patient['lastHR']:
 					print('Condizione HR fatta')
-					if median(patient["windowACC"]) < 1.2*patient['lastACC']:
+					if median(patient["windowACC"]) < 1.1*patient['lastACC']:
 						print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
 						url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
 						r=requests.get(url) #ThingSpeak request for panik attack event
@@ -125,7 +124,12 @@ class PatientControl():
 			# 				topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
 			# 				self.client.myPublish(topicTelegram,msg) #message to the care giver and the doctor of the patient for the panik attack event
 			# 				#publish per il Device Connector per la musica (?)
-
+				print('HR:')
+				print(patient["windowHR"])
+				print(patient['lastHR'])
+				print('ACC:')
+				print(patient["windowACC"])
+				print(patient['lastACC'])
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
@@ -182,7 +186,7 @@ if __name__=="__main__":
 	PC.CatalogCommunication()
 	tic=time.time()
 	while True:
-		if time.time()-tic>=120:
+		if time.time()-tic>=(60*5):
 			PC.CatalogCommunication()
 			PC.controlStrategy()
 			tic=time.time()

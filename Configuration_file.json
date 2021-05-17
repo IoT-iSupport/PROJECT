@@ -1,3 +1,4 @@
+
 {
     "Catalog_url":"http://127.0.0.1:8080",
     "clientID": "",
@@ -19,7 +20,7 @@
     
     "ThingSpeakAdaptor":{
         "clientID":"TSAdaptor",
-        "endTopic":["HeartRate","Accelerometer","Motion", "Temperature", "Humidity"]
+        "endTopic":["HeartRate","Accelerometer","Motion", "Air"]
     },
     "DataAnalysis":{
         "clientID":"DataAnalysisMS"
@@ -27,7 +28,7 @@
     "LightShift":{
         "clientID":"LigthShiftMS"
     },
-    ,
+    
     "TelegramBot": {
 
         "clientID":"telegramBot_iSupport",

@@ -9,7 +9,7 @@
             "deviceName": "hr_1",
             "deviceID": "1",
             "measureType": [
-                "Heart Rate"
+                "HeartRate"
             ],
             "availableServices": [
                 "MQTT"
@@ -22,7 +22,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1618597499.170588
+            "lastUpdate": 1621262730.7906127
         },
         {
             "deviceName": "acc_1",
@@ -41,7 +41,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1618597499.1939154
+            "lastUpdate": 1621262730.8037531
         },
         {
             "deviceName": "mot_1",
@@ -60,7 +60,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1618597499.2195287
+            "lastUpdate": 1621262730.8157704
         },
         {
             "deviceName": "airConditionair_1",
@@ -80,7 +80,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1618597499.2431045
+            "lastUpdate": 1621262730.827807
         },
         {
             "deviceName": "light_1",
@@ -96,7 +96,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1618597499.2662644
+            "lastUpdate": 1621262730.8387797
         },
         {
             "deviceName": "airConditionair_1",
@@ -112,31 +112,10 @@
                     ]
                 }
             ],
-            "lastUpdate": 1618597499.2902446
+            "lastUpdate": 1621262730.8527803
         }
     ],
     "patientList": [
-        {
-            "patientID": "1",
-            "patientName": "Mario",
-            "patientSurname": "Rossi",
-            "LightsSchedule": "7:00-7:30",
-            "connectedDevices": [
-                {
-                    "measure": "Temperature",
-                    "deviceID": "t_1"
-                }
-            ],
-            "telegramIDs": [],
-            "thingspeakInfo": {
-                "apikeys": [
-                    "UVDC81AL8H9T3SST",
-                    "8GB6GHSYYF6AIB98"
-                ],
-                "channel": 1264245
-            },
-            "lastUpdate": ""
-        },
         {
             "patientID": "2",
             "patientName": "Francesco",
@@ -155,6 +134,29 @@
                     "SV1HOET58CE7225M"
                 ],
                 "channel": 1342741
+            },
+            "lastUpdate": ""
+        },
+        {
+            "patientID": "1",
+            "patientName": "Mario",
+            "patientSurname": "Rossi",
+            "LightsSchedule": "7:00-7:30",
+            "connectedDevices": [
+                {
+                    "measure": "Temperature",
+                    "deviceID": "t_1"
+                }
+            ],
+            "telegramIDs": [
+                357684401
+            ],
+            "thingspeakInfo": {
+                "apikeys": [
+                    "UVDC81AL8H9T3SST",
+                    "8GB6GHSYYF6AIB98"
+                ],
+                "channel": 1264245
             },
             "lastUpdate": ""
         }
