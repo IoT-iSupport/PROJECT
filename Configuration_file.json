@@ -26,7 +26,8 @@
         "clientID":"DataAnalysisMS"
     },
     "LightShift":{
-        "clientID":"LigthShiftMS"
+        "clientID":"LigthShiftMS",
+        "endTopic": "Light"
     },
     
     "TelegramBot": {
