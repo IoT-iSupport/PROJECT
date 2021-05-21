@@ -20,14 +20,14 @@
     
     "ThingSpeakAdaptor":{
         "clientID":"TSAdaptor",
-        "endTopic":["HeartRate","Accelerometer","Motion", "Air"]
+        "endTopic":["HeartRate","Accelerometer","Motion", "Air"],
+        "Panik Attack topic": "'iSupport/+/PA"
     },
     "DataAnalysis":{
         "clientID":"DataAnalysisMS"
     },
     "LightShift":{
-        "clientID":"LigthShiftMS",
-        "endTopic": "Light"
+        "clientID":"LigthShiftMS"
     },
     
     "TelegramBot": {
