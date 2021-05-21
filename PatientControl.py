@@ -11,12 +11,9 @@
 # •	the Device Connector a actuation command for activating the music player. - da rivalutare
 import json
 import requests
-from MyMQTT import *
+from myMQTT import *
 from statistics import median
 import sys
-
-
-# endTopic = ['HeartRate','Accelerometer']
 
 class PatientControl():
 	def __init__(self,CATALOG_URL,baseTopic,clientID):
@@ -71,6 +68,7 @@ class PatientControl():
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/2.json?minutes=10'
 			r=requests.get(url) #retrive 10 minutes HR data
 			body2=r.json()
+			print(body2)
 
 			if body!=-1 and body2!=-1: #data retived correctly
 				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ]
@@ -79,57 +77,40 @@ class PatientControl():
 				# 	patient["windowHR"].append(item["field1"])
 				# for item in body2["feeds"]:
 				# 	patient["windowACC"].append(item["field2"])
-				
+				if patient["windowHR"] != [] or patient["windowACC"] != []:
 
-				if not 'lastHR' in patient: #first window observed: no comparing for the first observation
+					if not 'lastHR' in patient: #first window observed: no comparing for the first observation
+						patient['lastHR']=median(patient["windowHR"])
+						patient['lastACC']=median(patient["windowACC"])
+						
+					
+					if median(patient["windowHR"]) > 1.5*patient['lastHR']:
+						# print('Condizione HR fatta')
+						if not median(patient["windowACC"]) > 1.2*patient['lastACC']:
+							# print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
+							print('Panik attack DETECTED')
+							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
+							print(url)
+							msg={"patientID":patient["patientID"],"alertStatus":1}
+							topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
+							print(f'Sending: {msg} to {topicTelegram}')
+							self.client.myPublish(topicTelegram,msg)
+							sleep_msg ={'msg':'sleep'}
+							topicTS = self.baseTopic+str(patient["patientID"])+'/PA'
+							self.client.myPublish(topicTS,sleep_msg)
+							time.sleep(15)
+							r=requests.get(url) #ThingSpeak request for panik attack event
+							
+					
 					patient['lastHR']=median(patient["windowHR"])
 					patient['lastACC']=median(patient["windowACC"])
-					
-				
-				if median(patient["windowHR"]) > 1.2*patient['lastHR']:
-					print('Condizione HR fatta')
-					if median(patient["windowACC"]) < 1.1*patient['lastACC']:
-						print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
-						url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
-						r=requests.get(url) #ThingSpeak request for panik attack event
-						print(url)
-						msg={"patientID":patient["patientID"],"alertStatus":1}
-						topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
-						self.client.myPublish(topicTelegram,msg)
-				
-				patient['lastHR']=median(patient["windowHR"])
-				patient['lastACC']=median(patient["windowACC"])
-				# patient["windowHR"]=[]
-				# patient["windowACC"]=[]
-
-			# l=len(patient["windowHR"])
-			# if l>=10 or len(patient["windowACC"])>=10: 
-			# 	if not 'lastHR' in patient: #first window observed: no comparing for the first observation
-			# 		patient['lastHR']=median(patient["windowHR"])
-			# 		patient['lastACC']=median(patient["windowACC"])
-			# 	else:
-			# 		while patient["windowHR"]!=10:
-			# 			patient["windowHR"].pop(0) 
-			# 		while patient["windowACC"]!=10:
-			# 			patient["windowACC"].pop(0) 
-			# 		print(len(patient["windowACC"]))
-			# 		if median(patient["windowHR"]) > 1.5*patient['lastHR']:
-			# 			print('Condizione HR fatta')
-			# 			if median(patient["windowACC"]) < 1.2*patient['lastACC']:
-			# 				print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
-			# 				url=f'{self.WriteBaseUrl}{patient["apikey"]}&field4=1' #for collecting panik attack event
-			# 				r=requests.get(url) #ThingSpeak request for panik attack event
-			# 				print(url)
-			# 				msg={"patientID":patient["patientID"],"alertStatus":1}
-			# 				topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
-			# 				self.client.myPublish(topicTelegram,msg) #message to the care giver and the doctor of the patient for the panik attack event
-			# 				#publish per il Device Connector per la musica (?)
+		
 				print('HR:')
 				print(patient["windowHR"])
-				print(patient['lastHR'])
+				# print(patient['lastHR'])
 				print('ACC:')
 				print(patient["windowACC"])
-				print(patient['lastACC'])
+				# print(patient['lastACC'])
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 

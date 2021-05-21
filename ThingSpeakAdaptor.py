@@ -1,8 +1,9 @@
-from MyMQTT import *
+from myMQTT import *
 import json
 import requests
 from datetime import datetime
 import sys
+import time
 
 # from datetime import strftime
 #is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer). 
@@ -10,40 +11,54 @@ import sys
 
 
 class ThingSpeakGateway():
-	def __init__(self,CATALOG_URL,bT,endTopic,clientID):
+	def __init__(self,CATALOG_URL,bT,endTopic,PAtopic,clientID):
 		self.apikeysW=[]
 		self.apikeysR=[]
 		self.patients=[]
 		self.channels=[]
 		self.CATALOG_URL=CATALOG_URL
+		self.baseTopic = bT
 		self.endTopic=endTopic
+		self.PAtopic = PAtopic
 		self.clientID=clientID
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
 		self.ReadBaseUrl="https://api.thingspeak.com/channels/"
 		self.broker=''
 		self.port=0
-
+		self.sleep_dict = []
 		self.tic=time.time()
 
 	def start(self):
 		self.client.start()
 		for t in endTopic:
-			topic='iSupport/+/sensors/'+t
+			topic = self.baseTopic + '+/sensors/' + t
 			self.client.mySubscribe(topic)
+		self.client.mySubscribe(self.PAtopic)
 
 	def notify(self,topic,payload):
 		#receive from DC and send them to TS 
 		payload=json.loads(payload)
 		topic=topic.split('/')
 		id=int(topic[1]) #patientID
-		print(id)
-		print(self.patients)
+		if topic[2] == 'PA':
+			self.sleep_dict.append({'Patient':id,'sleep_time':time.time()})
+			print(self.sleep_dict)
+
 		for i,p in enumerate(self.patients):
 			if int(p)==id:
-				print(f'\npatient number: {p}\n')
+				for i,patient in enumerate(self.sleep_dict):
+					if id == patient['Patient']:
+						t = time.time()-patient['sleep_time']
+						print(f'Sleep MODE - elapsed time: {t}s')
+						if t<16:
+							exit()
+						else:
+							self.sleep_dict.pop(i)
+							break
 				if topic[3]=='HeartRate':
 					number=1					
 					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(payload["e"][0]["value"])}'	
+					print(url)
 				elif topic[3]=='Accelerometer':
 					number=2					
 					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(payload["e"][0]["value"])}'	
@@ -55,11 +70,6 @@ class ThingSpeakGateway():
 					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(numbers[0])}={str(payload["e"][0]["value"])}&field{str(numbers[1])}={str(payload["e"][1]["value"])}'	
 					
 				r=requests.get(url)
-				print(url)
-				data_s=datetime.now()
-				data=payload["e"][0]["timestamp"].split(' ')
-				data=datetime.strptime(data[1],'%H:%M:%S.%f')
-				print(f'Waited time: {data_s-data}')
 				
 	
 	# def notifyHandler(self,url,i,payload):
@@ -137,7 +147,7 @@ class ThingSpeakGateway():
 						payload_HUM.append(feed)
 
 
-				topic=f'iSupport/{p}/statistics/weekly'
+				topic=f'{self.baseTopic}{p}/statistics/weekly'
 				print(topic)
 				if not payload_HR==[] and not payload_MOT==[] and not payload_ACC==[] and not payload_TEM==[] and not payload_HUM==[]:
 					payload={'HeartRate':payload_HR,'Accelerometer':payload_ACC,'Motion':payload_MOT, 'Temperature':payload_TEM, 'Humidity':payload_HUM}
@@ -153,7 +163,7 @@ class ThingSpeakGateway():
 					if body["feeds"][measure][field]:
 						numberPA+=1
 				payload={'Number of panik attack':numberPA}
-				topic=f'iSupport/{p}/statistics/monthly'
+				topic=f'{self.baseTopic}{p}/statistics/monthly'
 				if not payload == []:
 					self.client.myPublish(topic, payload)
 
@@ -206,10 +216,11 @@ if __name__=="__main__":
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
 	endTopic = conf["ThingSpeakAdaptor"]["endTopic"]
+	PAtopic = conf["ThingSpeakAdaptor"]["Panik Attack topic"]
 	clientID=conf["ThingSpeakAdaptor"]["clientID"]
 	fp.close()
 
-	gateway=ThingSpeakGateway(CATALOG_URL,bT,endTopic,clientID)
+	gateway=ThingSpeakGateway(CATALOG_URL,bT,endTopic,PAtopic,clientID)
 	gateway.CatalogCommunication()
 	flag=True
 

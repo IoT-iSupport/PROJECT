@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from MyMQTT import *
+from myMQTT import *
 import random
 import threading
 import requests
@@ -95,12 +95,7 @@ class DeviceConnector():
 
 	def publish(self,range_hr,flag_temp,flag_motion): #range_hr è per resting/danger/sport per HR, flag_temp per generare temp e hum fuori dai range "normali" (o normale, 1 altrimenti)
 		#flag_motion=1/0 on(pff)
-		for d in self.connected_devices["Sensors"]:
-		
-			print(f'Message structure: {self.__message}')
-			print("###############  new Device #############################")
-		
-		
+		for d in self.connected_devices["Sensors"]:		
 			topic=d["servicesDetails"][0]["topic"]
 			if d["measureType"]==["Humidity","Temperature"]:
 				msg=dict(self.__message)
@@ -140,10 +135,11 @@ class DeviceConnector():
 				msg['e'][0]['n']='HeartRate'
 				print(range_hr)
 				if range_hr=='r': #rest
-					shape, scale = 0., 1. # mean=4, std=2*sqrt(2)
-					a= self.previous_hr+2*np.random.logistic(shape, scale) # genera un solo valore  
-					print(a)
-					self.previous_hr=a
+					# shape, scale = 0., 1. # mean=4, std=2*sqrt(2)
+					loc, scale = 60, 1
+					a= np.random.logistic(loc, scale) # genera un solo valore  
+					# print(a)
+					# self.previous_hr=a
 				elif range_hr=='d' or range_hr=='s': #danger o sport
 					shape, scale = 5., 10.  # mean=4, std=2*sqrt(2)
 					a = np.random.gamma(shape, scale)+110
@@ -218,7 +214,7 @@ if __name__=="__main__":
 	i=1
 	while True:
 		#On off del motion valutare cosa mettere (più presenza/assenza)
-		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=On\n\t0=Off\n')
+		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=Presence\n\t0=Unpresence\n')
 		command=command.split(',')
 		dc.RESTCommunication(sys.argv[2])
 		try:
