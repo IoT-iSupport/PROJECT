@@ -57,17 +57,17 @@ class ThingSpeakGateway():
 							break
 				if topic[3]=='HeartRate':
 					number=1					
-					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(payload["e"][0]["value"])}'	
+					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(round(payload["e"][0]["value"],2))}'	
 					print(url)
 				elif topic[3]=='Accelerometer':
 					number=2					
-					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(payload["e"][0]["value"])}'	
+					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(round(payload["e"][0]["value"],3))}'	
 				elif topic[3]=='Motion':
 					number=3
-					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(payload["e"][0]["value"])}'	
+					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={payload["e"][0]["value"]}'	
 				elif topic[3]=='Air':
 					numbers=[5,6]
-					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(numbers[0])}={str(payload["e"][0]["value"])}&field{str(numbers[1])}={str(payload["e"][1]["value"])}'	
+					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(numbers[0])}={str(round(payload["e"][0]["value"],2))}&field{str(numbers[1])}={str(round(payload["e"][1]["value"],2))}'	
 					
 				r=requests.get(url)
 				

@@ -68,7 +68,7 @@ class PatientControl():
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/2.json?minutes=10'
 			r=requests.get(url) #retrive 10 minutes HR data
 			body2=r.json()
-			print(body2)
+			# print(body2)
 
 			if body!=-1 and body2!=-1: #data retived correctly
 				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ]
@@ -77,7 +77,8 @@ class PatientControl():
 				# 	patient["windowHR"].append(item["field1"])
 				# for item in body2["feeds"]:
 				# 	patient["windowACC"].append(item["field2"])
-				if patient["windowHR"] != [] or patient["windowACC"] != []:
+				
+				if patient["windowHR"] != [] and patient["windowACC"] != []:
 
 					if not 'lastHR' in patient: #first window observed: no comparing for the first observation
 						patient['lastHR']=median(patient["windowHR"])
@@ -85,15 +86,15 @@ class PatientControl():
 						
 					
 					if median(patient["windowHR"]) > 1.5*patient['lastHR']:
-						# print('Condizione HR fatta')
-						if not median(patient["windowACC"]) > 1.2*patient['lastACC']:
-							# print('Condizione ACC fatta: PANIK ATTAAAAAAAACK')
-							print('Panik attack DETECTED')
+						print('Condizione HR fatta')
+						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']):
+							print('Condizione ACC fatta: EMERGENCY ALERT!')
+							# print('Panik attack DETECTED')
 							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
 							print(url)
 							msg={"patientID":patient["patientID"],"alertStatus":1}
 							topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
-							print(f'Sending: {msg} to {topicTelegram}')
+	
 							self.client.myPublish(topicTelegram,msg)
 							sleep_msg ={'msg':'sleep'}
 							topicTS = self.baseTopic+str(patient["patientID"])+'/PA'
@@ -105,17 +106,17 @@ class PatientControl():
 					patient['lastHR']=median(patient["windowHR"])
 					patient['lastACC']=median(patient["windowACC"])
 		
-				print('HR:')
-				print(patient["windowHR"])
-				# print(patient['lastHR'])
-				print('ACC:')
-				print(patient["windowACC"])
-				# print(patient['lastACC'])
+					print(f'HR current window:\n {patient["windowHR"]}')
+					print(f"HR current median: {patient['lastHR']}")
+					
+					print(f'Acceleration current window:\n {patient["windowACC"]}')
+					print(f"Acceleration current median: {patient['lastACC']}")
+					
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
-			print('if CatalogCommunication')
+			
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
 				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
@@ -123,7 +124,7 @@ class PatientControl():
 				self.client=MyMQTT(self.clientID,self.broker,self.port)
 				self.start()	
 		else:
-			print('else CatalogCommunication')
+		
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port)
