@@ -171,7 +171,7 @@ class DeviceConnector():
 				
 				msg['bn']=d["deviceID"]
 				msg['e'][0]['n']='Accelerometer'
-				msg['e'][0]['value']=a
+				msg['e'][0]['value']=abs(a)
 				msg['e'][0]['timestamp']=str(datetime.now())
 				msg['e'][0]['u']='m/s'
 				
