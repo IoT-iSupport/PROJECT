@@ -33,7 +33,7 @@ class HomeSystemControl():
 		id=topic[1] #patientID
 		for patient in self.dict:
 			if patient["patientID"]==id:
-				print(f'\npatient number: {patient["patientID"]}\n')
+				
 				if topic[3]==self.endTopic[0]:
 					patient["Temperature"].append(float(payload["e"][0]["value"]))
 					patient["Humidity"].append(float(payload["e"][1]["value"]))
@@ -52,6 +52,7 @@ class HomeSystemControl():
 				patient["Motion"].pop(0)
 			
 			# controllo finestra temporale di 15min
+			print(f'MOTION VECTOR: patient["Motion"]\nSUM:{sum(patient["Motion"])}')
 			if sum(patient["Motion"])==15: #veryfing the patient presence in the room for at least 15 min
 				print('User presence detected...')
 				now_time=datetime.today().time()

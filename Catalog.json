@@ -6,28 +6,10 @@
     "token": "1711013176:AAH6bCdvA0dOdL8fX4FIfCPGEqpEFNjN1d4",
     "deviceList": [
         {
-            "deviceName": "hr_1",
+            "deviceName": "smartwatch_1",
             "deviceID": "1",
             "measureType": [
-                "HeartRate"
-            ],
-            "availableServices": [
-                "MQTT"
-            ],
-            "servicesDetails": [
-                {
-                    "serviceType": "MQTT",
-                    "topic": [
-                        "iSupport/1/sensors/HeartRate"
-                    ]
-                }
-            ],
-            "lastUpdate": 1621589288.754634
-        },
-        {
-            "deviceName": "acc_1",
-            "deviceID": "2",
-            "measureType": [
+                "HeartRate",
                 "Accelerometer"
             ],
             "availableServices": [
@@ -37,11 +19,11 @@
                 {
                     "serviceType": "MQTT",
                     "topic": [
-                        "iSupport/1/sensors/Accelerometer"
+                        "iSupport/1/sensors/Body"
                     ]
                 }
             ],
-            "lastUpdate": 1621589288.766647
+            "lastUpdate": 1621764472.704841
         },
         {
             "deviceName": "mot_1",
@@ -60,7 +42,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1621589288.7794983
+            "lastUpdate": 1621764472.7178607
         },
         {
             "deviceName": "airConditionair_1",
@@ -80,7 +62,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1621589288.792585
+            "lastUpdate": 1621764472.7308412
         },
         {
             "deviceName": "light_1",
@@ -96,7 +78,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1621589288.805449
+            "lastUpdate": 1621764472.7408397
         },
         {
             "deviceName": "airConditionair_1",
@@ -112,7 +94,7 @@
                     ]
                 }
             ],
-            "lastUpdate": 1621589288.8182292
+            "lastUpdate": 1621764472.7528417
         }
     ],
     "patientList": [
@@ -142,18 +124,14 @@
             "patientName": "Mario",
             "patientSurname": "Rossi",
             "LightsSchedule": "7:00-7:30",
-            "connectedDevices": [
+            "connectedDevices":[
                 {
                     "measure": ["Temperature","Humidity"],
                     "deviceID": "air_1"
                 },
                 {
-                    "measure": "Heart Rate",
-                    "deviceID": "hr_1"
-                },
-                {
-                    "measure": "Acceration",
-                    "deviceID": "acc_1"
+                    "measure": ["Heart Rate","Acceration"],
+                    "deviceID": "smartwatch_1"
                 },
                 {
                     "measure": "Presence",

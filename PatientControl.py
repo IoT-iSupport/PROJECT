@@ -87,7 +87,7 @@ class PatientControl():
 					
 					if median(patient["windowHR"]) > 1.5*patient['lastHR']:
 						print('Condizione HR fatta')
-						if not median(patient["windowACC"]) > 3*(patient['lastACC']):
+						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']):
 							print('Condizione ACC fatta: EMERGENCY ALERT!')
 							# print('Panik attack DETECTED')
 							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event

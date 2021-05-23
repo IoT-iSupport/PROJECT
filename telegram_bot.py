@@ -42,7 +42,7 @@ class MQTTbot:
 						catalog_data = {"chatID": chat_ID}
 						patient["chatID"].append(chat_ID)
 						r=requests.post(self.CATALOG_URL+f"/chatID/{patient['patientID']}",json=catalog_data)
-						print(r.status_code)
+						
 						if r.status_code == 200: #if the POST request succeed
 							self.bot.sendMessage(chat_ID, text=f"Patient {message} connected with your bot.")
 							flag1 = 1
@@ -103,9 +103,9 @@ class MQTTbot:
 		#print(id)
 
 		for patient in self.dict:
-			print("for")
+			# print("for")
 			if int(patient["patientID"])==id:
-				print(int(patient["patientID"]))
+				# print(int(patient["patientID"]))
 				if "chatID" in patient: #if the patient has already a doctor/care giver who needs to be notified
 					chat_IDs=patient["chatID"]
 					tosend=f'ATTENTION: The patient {patient["patientID"]}\n{self.__message["alert"]}, you should {self.__message["action"]}'
@@ -117,11 +117,11 @@ class MQTTbot:
 						self.bot.sendMessage(c, text=tosend)				
 
 	def CatalogCommunication(self):
-		print("CatalogCommunication")
+		# print("CatalogCommunication")
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
 		if self.broker and self.port: #if broker and port already exist...
-			print('if CatalogCommunication')
+			# print('if CatalogCommunication')
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker/port is changed...
 				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
@@ -131,7 +131,7 @@ class MQTTbot:
 				TOPIC = f"{self.baseTopic}+/+{self.endTopic}"
 				self.client.mySubscribe(TOPIC)	
 		else: #create and start new client and subscribe to topic
-			print('else CatalogCommunication')
+			# print('else CatalogCommunication')
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
@@ -163,7 +163,7 @@ class MQTTbot:
 				for patient in self.dict:
 					if patient["patientID"]==item["patientID"]:
 						patient["chatID"]=item["telegramIDs"] #... update chatID
-		print(self.dict)
+		# print(self.dict)
 
 
 if __name__ == "__main__":
@@ -177,7 +177,6 @@ if __name__ == "__main__":
 	fp.close()
 
 	tb=MQTTbot(CATALOG_URL,bT,endTopic,clientID)
-	input("press a key to start...")
 	while True: #every 120s retrieve token/broker/port and patient "chatID"
 		tb.CatalogCommunication()
 		time.sleep(120)

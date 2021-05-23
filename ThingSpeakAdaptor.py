@@ -55,13 +55,9 @@ class ThingSpeakGateway():
 						else:
 							self.sleep_dict.pop(i)
 							break
-				if topic[3]=='HeartRate':
-					number=1					
-					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(round(payload["e"][0]["value"],2))}'	
-					print(url)
-				elif topic[3]=='Accelerometer':
-					number=2					
-					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={str(round(payload["e"][0]["value"],3))}'	
+				if topic[3]=='Body':
+					numbers=[1,2]
+					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(numbers[0])}={str(round(payload["e"][0]["value"],2))}&field{str(numbers[1])}={str(round(payload["e"][1]["value"],3))}'	
 				elif topic[3]=='Motion':
 					number=3
 					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(number)}={payload["e"][0]["value"]}'	
@@ -226,7 +222,7 @@ if __name__=="__main__":
 
 	while True:
 		today= datetime.now()
-		if today.hour==16 and flag: #Monday condition, It has to enter in the condition once a day
+		if today.hour==11 and flag: #Monday condition, It has to enter in the condition once a day
 			gateway.publish()
 			gateway.CatalogCommunication()
 			flag=False

@@ -8,7 +8,7 @@
     },
     "PatientControl":{
         "clientID" : "PatientControlMS",
-        "endTopic":["HeartRate","Accelerometer"]
+        "endTopic":["Body"]
     },
 
     "HomeSystemControl":
@@ -20,7 +20,7 @@
     
     "ThingSpeakAdaptor":{
         "clientID":"TSAdaptor",
-        "endTopic":["HeartRate","Accelerometer","Motion", "Air"],
+        "endTopic":["Body","Motion", "Air"],
         "Panik Attack topic": "'iSupport/+/PA"
     },
     "DataAnalysis":{

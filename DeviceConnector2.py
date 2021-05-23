@@ -129,11 +129,10 @@ class DeviceConnector():
 				msg['bn']=d["deviceID"]
 				msg['e']=[{'n':'Temperature','value':a_temp,'timestamp':str(datetime.now()),'u':'C'},{'n':'Humidity','value':a_hum,'timestamp':str(datetime.now()),'u':'%'}]
 
-			elif d["measureType"]==['HeartRate']: 
+			elif d["measureType"]==['HeartRate',"Accelerometer"]: 
 				msg=dict(self.__message)
 				msg['bn']=d["deviceID"]
-				msg['e'][0]['n']='HeartRate'
-				print(range_hr)
+				
 				if range_hr=='r': #rest
 					# shape, scale = 0., 1. # mean=4, std=2*sqrt(2)
 					loc, scale = 60, 1
@@ -143,9 +142,22 @@ class DeviceConnector():
 				elif range_hr=='d' or range_hr=='s': #danger o sport
 					shape, scale = 5., 10.  # mean=4, std=2*sqrt(2)
 					a = np.random.gamma(shape, scale)+110
-				msg['e'][0]['value']=a
-				msg['e'][0]['timestamp']=str(datetime.now())
-				msg['e'][0]['u']='bpm'
+
+				if range_hr=='r' or range_hr=='d':
+					n=random.randint(5,len(self.linesREST))		
+					m=self.linesREST[n].split(',')
+					float_number=[float(number) for number in m]
+					b=float_number[4]
+				
+				elif range_hr=='s':
+					n=random.randint(5,len(self.linesSPORT))		
+					m=self.linesSPORT[n].split(',')
+					float_number=[float(number) for number in m]
+					b=float_number[4] #the absolute value of the accelerometer 3-axial measurements
+				
+				msg['e']=[{'n':'HeartRate','value':a,'timestamp':str(datetime.now()),'u':'bpm'},{'n':'Accelerometer','value':abs(b),'timestamp':str(datetime.now()),'u':'m/s2'}]
+
+
 				
 			elif d["measureType"]==['Motion']:
 				msg=dict(self.__message)
@@ -214,7 +226,7 @@ if __name__=="__main__":
 	i=1
 	while True:
 		#On off del motion valutare cosa mettere (più presenza/assenza)
-		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t0=In range value\n\t1=Out of range value\n3.Set the motion sensor:\n\t1=Presence\n\t0=Unpresence\n')
+		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=Presence\n\t0=Unpresence\n')
 		command=command.split(',')
 		dc.RESTCommunication(sys.argv[2])
 		try:

@@ -1,28 +1,19 @@
 
 {
 	"Sensors":[{
-			"deviceName":"hr_1",
+			"deviceName":"smartwatch_1",
 			"deviceID":"1",
 			"measureType":[
-				"HeartRate"
+				"HeartRate","Accelerometer"
 			],
 			"availableServices":[
 				"MQTT"
 			],
 			"servicesDetails":[{
 					"serviceType":"MQTT",
-					"topic":["iSupport/1/sensors/HeartRate"]
+					"topic":["iSupport/1/sensors/Body"]
 				}]},
-				{
-			"deviceName":"acc_1",
-			"deviceID":"2",
-			"measureType":["Accelerometer"],
-			"availableServices":["MQTT"],
-			"servicesDetails":[{
-				"serviceType":"MQTT",
-				"topic":["iSupport/1/sensors/Accelerometer"]
-			}]
-				},
+			
 			{
 			"deviceName":"mot_1",
 			"deviceID":"3",

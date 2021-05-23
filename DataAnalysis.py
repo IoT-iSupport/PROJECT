@@ -1,5 +1,5 @@
 import json
-from MyMQTT import *
+from myMQTT import *
 import requests
 import sys
 import statistics
@@ -48,34 +48,27 @@ class DataAnalysis():
 			bodyHR=payload["HeartRate"]
 			print(f'\nHR: {bodyHR}\n')
 			bodyACC=payload["Accelerometer"]
-			print(f'ACC:{bodyACC}\n')
+			# print(f'ACC:{bodyACC}\n')
 			bodyMOT=payload["Motion"]
+			# print(f'MOT:{bodyMOT}\n')
 			self.list_dict[pos]["Weekly Measurements"]["day"] += 1
 			for feed in bodyHR:
 				date=feed["date"].split("T")[1].split(":") #we care about the hour (date[0])
 				#the HR measureament are divided into 3 time slots (0-8/8-19/19-24):
 				if int(date[0])<=8: 
-					if self.list_dict[pos]["Weekly Measurements"]["min_value"][0]>float(feed["value"]): #greater than
-						self.list_dict[pos]["Weekly Measurements"]["min_value"][0]=float(feed["value"])
-					if self.list_dict[pos]["Weekly Measurements"]["max_value"][0]<float(feed["value"]): #minor than
-						self.list_dict[pos]["Weekly Measurements"]["max_value"][0]=float(feed["value"])
 					#summing all the measureament (the division for obtaining the mean value is done before publishing )
+					self.list_dict[pos]["Weekly Measurements"]["number"][0] += 1
 					self.list_dict[pos]["Weekly Measurements"]["mean_value"][0]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][0]+float(feed["value"])
 				elif int(date[0])<=19:
-					if self.list_dict[pos]["Weekly Measurements"]["min_value"][1]>float(feed["value"]):#greater than
-						self.list_dict[pos]["Weekly Measurements"]["min_value"][1]=float(feed["value"])
-					if self.list_dict[pos]["Weekly Measurements"]["max_value"][1]<float(feed["value"]):#minor than
-						self.list_dict[pos]["Weekly Measurements"]["max_value"][1]=float(feed["value"])
+					self.list_dict[pos]["Weekly Measurements"]["number"][1] += 1
 					self.list_dict[pos]["Weekly Measurements"]["mean_value"][1]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][1]+float(feed["value"])
 				else: #int(date[0])<24:
-					if self.list_dict[pos]["Weekly Measurements"]["min_value"][2]>float(feed["value"]):#greater than
-						self.list_dict[pos]["Weekly Measurements"]["min_value"][2]=float(feed["value"])
-					if self.list_dict[pos]["Weekly Measurements"]["max_value"][2]<float(feed["value"]):#minor than
-						self.list_dict[pos]["Weekly Measurements"]["max_value"][2]=float(feed["value"])
+					self.list_dict[pos]["Weekly Measurements"]["number"][2] += 1
 					self.list_dict[pos]["Weekly Measurements"]["mean_value"][2]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][2]+float(feed["value"])
 			
 			#activity report of the patient
 			temp = []
+		
 			for feedACC,feedHR in zip(bodyACC,bodyHR):
 				if float(feedACC["value"])>2: #first threshold
 					temp.append(float(feedHR["value"]))
@@ -88,8 +81,20 @@ class DataAnalysis():
 							self.list_dict[pos]["Weekly Measurements"]["activity"][1]+=len(temp)
 						else:
 							self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
-					temp=[]	
-			
+						temp=[]	
+					else:
+						temp=[]	
+			if temp !=[]: #last window
+				if len(temp)>5:
+					# print(statistics.mean(temp))
+					if statistics.mean(temp)<80:
+						self.list_dict[pos]["Weekly Measurements"]["activity"][0]+=len(temp)
+					elif 80<statistics.mean(temp)<120:
+						self.list_dict[pos]["Weekly Measurements"]["activity"][1]+=len(temp)
+					else:
+						self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
+					
+
 			#weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door 
 			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][1]+=len(bodyMOT) #total number of samples
 			# for item in bodyMOT:
@@ -99,14 +104,13 @@ class DataAnalysis():
 
 			if self.list_dict[pos]["Weekly Measurements"]["day"]==7:
 				self.publish(id,"weekly")
-				self.list_dict[pos]["Weekly Measurements"]["min_value"]=[1000]*3
-				self.list_dict[pos]["Weekly Measurements"]["max_value"]=[0]*3
+				self.list_dict[pos]["Weekly Measurements"]["number"] = [0]*3
 				self.list_dict[pos]["Weekly Measurements"]["mean_value"]=[0]*3
 				self.list_dict[pos]["Weekly Measurements"]["day"]=0
 				self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"]=[0]*2
 				self.list_dict[pos]["Weekly Measurements"]["activity"]=[0]*3
-			# elif  self.list_dict[pos]["Weekly Measurements"]["day"]==1:
-			# 	self.publish(id,"weekly")
+			elif  self.list_dict[pos]["Weekly Measurements"]["day"]==1:
+				self.publish(id,"weekly")
 
 		else: #recurrence of panic attacks 
 			self.list_dict[pos]["Monthly Measurements"]["day"]+=1
@@ -114,8 +118,8 @@ class DataAnalysis():
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
 				self.publish(id,"monthly")
 				self.list_dict[pos]["Monthly Measurements"]["day"]=0
-			# elif self.list_dict[pos]["Monthly Measurements"]["day"]==1:
-			# 	self.publish(id,"monthly")
+			elif self.list_dict[pos]["Monthly Measurements"]["day"]==1:
+				self.publish(id,"monthly")
 			
 
 	def publish(self,id,command):
@@ -124,6 +128,7 @@ class DataAnalysis():
 		print(topic)
 		if command=='weekly':
 			activity=self.list_dict[i]["Weekly Measurements"]["activity"]
+			print(f'Activity vector: {activity}')
 			try :
 				x =[a/sum(activity)*100 for a in activity]
 			except:
@@ -132,9 +137,7 @@ class DataAnalysis():
 			bed_output = bed[0]/bed[1]
 			payload={"patientID":id,
 			"average heart rate":{
-				"min_value":self.list_dict[i]["Weekly Measurements"]["min_value"],
-				"max_value":self.list_dict[i]["Weekly Measurements"]["max_value"],
-				"mean_value":[m/sum(self.list_dict[i]["Weekly Measurements"]["mean_value"]) for m in self.list_dict[i]["Weekly Measurements"]["mean_value"]]
+				"mean_value": [m/n for n,m in zip(self.list_dict[i]["Weekly Measurements"]["number"],self.list_dict[i]["Weekly Measurements"]["mean_value"])]
 				},
 			"activity":x,
 			"bedroomMotion":bed_output*100
@@ -183,8 +186,7 @@ class DataAnalysis():
 							},
 					"Weekly Measurements":{ 
 							"day":0,
-							"min_value":[1000]*3,
-							"max_value":[0]*3,
+							"number":[0]*3,
 							"mean_value":[0]*3,
 							"activity":[0]*3,
 							"bedroomstatus":[0,0]},
@@ -199,7 +201,7 @@ class DataAnalysis():
 					if patient["patientID"]==item["patientID"]:
 						patient["PatientInfo"]["apikey"]=item["apikey"] #... update apikey and channel
 						patient["PatientInfo"]["channel"]=item["channel"]			
-		print(self.list_dict)
+		# print(self.list_dict)
 if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
