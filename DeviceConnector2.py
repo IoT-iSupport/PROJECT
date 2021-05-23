@@ -214,7 +214,7 @@ if __name__=="__main__":
 	i=1
 	while True:
 		#On off del motion valutare cosa mettere (più presenza/assenza)
-		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=Presence\n\t0=Unpresence\n')
+		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t0=In range value\n\t1=Out of range value\n3.Set the motion sensor:\n\t1=Presence\n\t0=Unpresence\n')
 		command=command.split(',')
 		dc.RESTCommunication(sys.argv[2])
 		try:
