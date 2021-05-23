@@ -7,7 +7,7 @@
 import json
 import requests
 from datetime import datetime
-from MyMQTT import *
+from myMQTT import *
 import sys
 
 class HomeSystemControl():
@@ -41,7 +41,7 @@ class HomeSystemControl():
 					patient["Motion"].append(int(payload["e"][0]["value"]))
 
 	def controlStrategy(self):
-		print('Control strategy check')
+		print('Controlling home enviroment...')
 		for patient in self.dict:
 			topicP=f'{self.baseTopic}{patient["patientID"]}/actuators/Air'
 			while len(patient["Temperature"])>15:
@@ -50,12 +50,10 @@ class HomeSystemControl():
 				patient["Humidity"].pop(0)
 			while len(patient["Motion"])>15:
 				patient["Motion"].pop(0)
-			print(patient["Motion"])	
-			print(patient["Humidity"])
-			print(patient["Temperature"])
+			
 			# controllo finestra temporale di 15min
 			if sum(patient["Motion"])==15: #veryfing the patient presence in the room for at least 15 min
-				print('Motion check')
+				print('User presence detected...')
 				now_time=datetime.today().time()
 				now_month=datetime.now().month
 				t1=datetime.strptime(self.timeslot[0],"%H:%M").time()
@@ -69,33 +67,35 @@ class HomeSystemControl():
 							#publish for the activation of the air conditioner
 							msg={"patientID":patient["patientID"],"AirConditionairStatus":1}
 							patient["status"]=1
+							print('Activating Air Conditionair System')
 							self.client.myPublish(topicP,msg)
 						else:
 							Out_u=[u for u in patient["Humidity"] if u>50 or u<40] #out of range values
 							if len(Out_u)>=15:
 								msg={"patientID":patient["patientID"],"AirConditionairStatus":1}
 								patient["status"]=1
+								print('Activating Air Conditionair System')
 								self.client.myPublish(topicP,msg)
+
 					#Summer:
 					elif now_month>=4 or now_month<=9: #from April to September
-						print('Month check')
 						Out=[t for t in patient["Temperature"] if t>26 or t<24] #out of range values
-						print(len(Out))
-						print(Out)
+						
 						if len(Out)>=15:
 							#publish for the activation of the air conditioner
 							msg={"patientID":patient["patientID"],"AirConditionairStatus":1}
 							patient["status"]=1
-							print(msg)
+							print('Activating Air Conditionair System')
 							self.client.myPublish(topicP,msg)
 						else:
 							Out_u=[u for u in patient["Humidity"] if u>60 or u<50] #out of range values
 							if len(Out_u)>=15:
 								msg={"patientID":patient["patientID"],"AirConditionairStatus":1}
 								patient["status"]=1
-								print(msg)
+								print('Activating Air Conditionair System')
 								self.client.myPublish(topicP,msg)   
 				else: #if it is night
+					print('Night mode activated')
 					if patient["status"]==1:
 						msg={"patientID":patient["patientID"],"AirConditionairStatus":0}
 						print(msg)
@@ -103,9 +103,11 @@ class HomeSystemControl():
 						self.client.myPublish(topicP,msg)  
 	
 			else: #if the patient is not present
+				print('User presence not detected')
 				if patient["status"]==1:
 					msg={"patientID":patient["patientID"],"AirConditionairStatus":0}
 					patient["status"]=0
+					print('Switch off Air Conditionair System')
 					self.client.myPublish(topicP,msg)  
 
 	def CatalogCommunication(self):
@@ -151,7 +153,7 @@ if __name__=="__main__":
 	while True:
 		
 		if time.time()-tic>=60*5:
-			#every 5 minutes the Home comfort is checked 
+			#every 5 minutes the Home enviroment is controlled 
 			HSControl.CatalogCommunication()
 			HSControl.controlStrategy()
 			tic=time.time()
