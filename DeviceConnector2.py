@@ -165,28 +165,7 @@ class DeviceConnector():
 				msg['e'][0]['n']='Motion'
 				msg['e'][0]['value']=flag_motion
 				msg['e'][0]['timestamp']=str(datetime.now())
-				msg['e'][0]['u']='bool'
-				
-			elif d["measureType"]==["Accelerometer"]: 
-				msg=dict(self.__message)
-				if range_hr=='r' or range_hr=='d':
-					n=random.randint(5,len(self.linesREST))		
-					m=self.linesREST[n].split(',')
-					float_number=[float(number) for number in m]
-					a=float_number[4]
-				
-				elif range_hr=='s':
-					n=random.randint(5,len(self.linesSPORT))		
-					m=self.linesSPORT[n].split(',')
-					float_number=[float(number) for number in m]
-					a=float_number[4] #the absolute value of the accelerometer 3-axial measurements
-				
-				msg['bn']=d["deviceID"]
-				msg['e'][0]['n']='Accelerometer'
-				msg['e'][0]['value']=abs(a)
-				msg['e'][0]['timestamp']=str(datetime.now())
-				msg['e'][0]['u']='m/s'
-				
+				msg['e'][0]['u']='bool'				
 				
 			self.client.myPublish(topic[0],msg)
 			time.sleep(15)
