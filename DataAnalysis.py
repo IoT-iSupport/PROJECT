@@ -133,11 +133,18 @@ class DataAnalysis():
 				x =[a/sum(activity)*100 for a in activity]
 			except:
 				x = [0,0,0]
+			y = []
+			for n,m in zip(self.list_dict[i]["Weekly Measurements"]["number"],self.list_dict[i]["Weekly Measurements"]["mean_value"]):
+				try :
+					y.append(m/n)
+				except:
+					y.append(0)
+					
 			bed=self.list_dict[i]["Weekly Measurements"]["bedroomstatus"]
 			bed_output = bed[0]/bed[1]
 			payload={"patientID":id,
 			"average heart rate":{
-				"mean_value": [m/n for n,m in zip(self.list_dict[i]["Weekly Measurements"]["number"],self.list_dict[i]["Weekly Measurements"]["mean_value"])]
+				"mean_value": y
 				},
 			"activity":x,
 			"bedroomMotion":bed_output*100
