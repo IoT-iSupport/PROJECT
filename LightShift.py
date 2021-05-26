@@ -39,7 +39,6 @@ class LightShift():
 								]
 						}
 					self.client.myPublish(topic,msg)
-					print(topic)
 			else: # if it's time to switch off the Lights... 
 				if patient["status"]==1: #... and Lights are switch on
 					patient["status"]=0
@@ -51,13 +50,11 @@ class LightShift():
 								]
 						}
 					self.client.myPublish(topic,msg) #an actuation command is sent to to switch lights of this patient off
-					print(topic)
 
 	def CatalogCommunication(self):
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
 		if self.broker and self.port: #if broker and port already exist...
-			print('if CatalogCommunication')
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker is changed...
 				self.broker = r.json()["IPaddress"] #... update broker and port
 				self.port = r.json()["port"]
@@ -65,7 +62,6 @@ class LightShift():
 				self.client=MyMQTT(self.clientID,self.broker,self.port) #create and start new client
 				self.start()	
 		else: #create and start new client
-			print('else CatalogCommunication')
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port)
