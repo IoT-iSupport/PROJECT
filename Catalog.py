@@ -24,7 +24,6 @@ class Catalog():
 		else:
 			#Retrieve IP address and port of the message broker
 			if uri[0]=='broker':
-				print(json.dumps(self.broker,indent=4))
 				return json.dumps(self.broker,indent=4)
 			#Retrieve telegram token
 			elif uri[0]=='token':
@@ -38,7 +37,6 @@ class Catalog():
 				for p in self.patients:
 					item={"patientID":p["patientID"],"apikey":[i for i in p["thingspeakInfo"]["apikeys"]],"channel":p["thingspeakInfo"]["channel"],"LightsSchedule":p["LightsSchedule"],"telegramIDs":p["telegramIDs"]}
 					output.append(item)
-				print(f'The patient is: {output}')
 				return json.dumps(output,indent=4)
 			#It is used by DeviceConnector.py for retriving the registered devices
 			elif uri[0]=='deviceID':
@@ -46,20 +44,12 @@ class Catalog():
 				for item in self.devices:
 					if item['deviceID']==id:
 						return json.dumps(item,indent=4)
-				   
-			# elif uri[0]=='chatIDs':
-			#     id=uri[1]
-			#     for item in self.patients:
-			#         if item['patientID']==id:
-			#             msg={"chatIDs":item["telegramIDs"]}
-			#             return json.dumps(msg,indent=4)
 			else:
 				raise cherrypy.HTTPError(400,"Bad Request")
 					
 	def POST(self,*uri):
 		uri=list(uri)
 		json_body = json.loads(cherrypy.request.body.read())
-		print(type(json_body))
 		if not len(uri):
 			raise cherrypy.HTTPError(400,"Bad Request")
 		else:
@@ -68,6 +58,7 @@ class Catalog():
 				json_body["lastUpdate"]=time.time()
 				self.devices.append(json_body)
 				self.save()
+				print(f'\nAdded deviceID: {json_body["deviceID"]}')
 			#Add a new user
 			elif uri[0]=='patient':
 				json_body["lastUpdate"]=time.time()
@@ -79,7 +70,6 @@ class Catalog():
 					if int(uri[1])==int(patient["patientID"]):
 						patient["telegramIDs"].append(json_body["chatID"])
 						self.save()
-						print(self.patients)
 			else:
 				raise cherrypy.HTTPError(404,"Not Found")
 			
@@ -117,7 +107,7 @@ class Catalog():
 		if not self.devices==[]:
 			ind=[]
 			for i,device in list(enumerate(self.devices)):
-				print(f'Device: {device["deviceName"]}, i: {i}, diff: {time.time()-device["lastUpdate"]}')
+				#print(f'Device: {device["deviceName"]}, i: {i}, diff: {time.time()-device["lastUpdate"]}')
 				if time.time()>device["lastUpdate"]+120:
 					print(f'Removed deviceID: {device["deviceID"]}')
 					ind.append(i) #append all the indexes of the devices to be removed
