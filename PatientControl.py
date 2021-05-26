@@ -63,12 +63,10 @@ class PatientControl():
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/1.json?minutes=10'
 			r=requests.get(url) #retrive 10 minutes Accelerometer data
 			body=r.json()
-			#print(body)
 			
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/2.json?minutes=10'
 			r=requests.get(url) #retrive 10 minutes HR data
 			body2=r.json()
-			# print(body2)
 
 			if body!=-1 and body2!=-1: #data retived correctly
 				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ]
@@ -89,7 +87,6 @@ class PatientControl():
 						print('Condizione HR fatta')
 						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']):
 							print('Condizione ACC fatta: EMERGENCY ALERT!')
-							# print('Panik attack DETECTED')
 							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
 							print(url)
 							msg={"patientID":patient["patientID"],"alertStatus":1}
@@ -113,6 +110,7 @@ class PatientControl():
 					print(f"Acceleration current median: {patient['lastACC']}")
 					
 	def CatalogCommunication(self):
+		#print('Catalog Communication')
 		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
@@ -155,13 +153,10 @@ class PatientControl():
 
 if __name__=="__main__":
 	fp = open(sys.argv[1])
-	#fp='Configuration_file.json'
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
-	#endTopic = conf["PatientControl"]["endTopic"]
 	clientID = conf["PatientControl"]["clientID"]
-	print(clientID)
 	fp.close()
 	
 	PC=PatientControl(CATALOG_URL,bT,clientID)
