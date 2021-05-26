@@ -2,14 +2,10 @@ import json
 from datetime import datetime
 from myMQTT import *
 import random
-import threading
 import requests
 import numpy as np
 from random import choice
 import sys
-
-# CATALOG_URL='http://127.0.0.1:8080'
-# patient=1
 
 class DeviceConnector():
 	def __init__(self,CATALOG_URL,clientID,patient,baseTopic,linesREST,linesSPORT):
@@ -55,24 +51,23 @@ class DeviceConnector():
 			if r.text=='':
 				#new Registration
 				requests.post(self.CATALOG_URL+f'/device',json=device)
+				print(f'Registered DeviceID: {device["deviceID"]}')
 			else:
 				#updating Devices
 				requests.put(self.CATALOG_URL+f'/device',json=device)
+				print(f'Updated registration of DeviceID: {device["deviceID"]}')
 
 	def MQTTinfoRequest(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
-			print('if MQTTinfoRequest')
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
 				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
-				print(self.port)
 				self.client.stop()
 				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 				self.start()
 			
 		else:
-			print('else MQTTinfoRequest')
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
@@ -95,7 +90,8 @@ class DeviceConnector():
 
 	def publish(self,range_hr,flag_temp,flag_motion): #range_hr è per resting/danger/sport per HR, flag_temp per generare temp e hum fuori dai range "normali" (o normale, 1 altrimenti)
 		#flag_motion=1/0 on(pff)
-		for d in self.connected_devices["Sensors"]:		
+		for d in self.connected_devices["Sensors"]:
+			print('\n')	
 			topic=d["servicesDetails"][0]["topic"]
 			if d["measureType"]==["Humidity","Temperature"]:
 				msg=dict(self.__message)
@@ -177,6 +173,7 @@ class DeviceConnector():
 		if topic.split('/')[3] == 'Light':
 			#relays command (Lights)
 			self.status_light=payload["e"][0]["value"]
+			print(f'\nlight status of light_{topic.split("/")[1]} set to {self.status_light}')
 		elif topic.split('/')[3] == 'Air':
 			self.status_airC==payload["AirConditionairStatus"]			
 
