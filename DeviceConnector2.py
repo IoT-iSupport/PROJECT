@@ -15,8 +15,11 @@ class DeviceConnector():
 		self.clientID = clientID
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopicS=f"{baseTopic}{patient}/actuators"
+		
+		#initialisation for broker and port
 		self.broker=''
 		self.port=0
+		
 		self.__message={
 			'patientID':self.patient, 
 			'bn':'',
@@ -178,6 +181,7 @@ class DeviceConnector():
 			self.status_airC==payload["AirConditionairStatus"]			
 
 if __name__=="__main__":
+	#sys.argv[1] is CONNECTTED_DEVICE.JSON
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
@@ -186,7 +190,7 @@ if __name__=="__main__":
 	clientID='DeviceConnector'+str(patientID)
 	fp.close()
 	
-
+	#txt files with accelerometer measurements
 	fp = open("REST.txt") 
 	linesREST=fp.readlines()
 	fp.close()
@@ -196,9 +200,10 @@ if __name__=="__main__":
 	fp.close()
 
 	dc=DeviceConnector(CATALOG_URL,clientID,patientID,bT,linesREST,linesSPORT)
+	#sys.argv[2] is Configuration_file.json
 	dc.RESTCommunication(sys.argv[2])
 	dc.MQTTinfoRequest()
-	#first step: connection and registration    
+	   
 	i=1
 	while True:
 		#On off del motion valutare cosa mettere (più presenza/assenza)
@@ -208,12 +213,12 @@ if __name__=="__main__":
 		try:
 			while True:
 				dc.publish(command[0],int(command[1]),command[2]) #0: range heart rate, 1: temperatura(0/1=dentro/fuori range), 2: motion sensor (1/0=on/off) 
-				if i==2: #every 120s
+				if i==2: #every 120s register devices or refresh registration and retrieve broker/port
 					dc.RESTCommunication(sys.argv[2])
 					dc.MQTTinfoRequest()
 					i=0
 				# time.sleep(45)  
 				i=i+1
-		except KeyboardInterrupt: #CRTL+C per cambiare stato 
+		except KeyboardInterrupt: #CRTL+C for changing status 
 			continue
 	dc.stop()
