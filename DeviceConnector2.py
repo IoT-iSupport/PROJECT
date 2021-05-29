@@ -41,7 +41,7 @@ class DeviceConnector():
 		# "Light": "iSupport/1/actuators/Light",
 		# "Air": "iSupport/1/actuators/Air"
 		# }
-		for item in self.connected_devices["Actuators"]:
+		for item in self.connected_devices["Actuators"]: #append topic
 			for SD in item["servicesDetails"]:
 				if SD["serviceType"]=='MQTT':
 					for topic in SD["topic"]:
@@ -56,21 +56,21 @@ class DeviceConnector():
 				requests.post(self.CATALOG_URL+f'/device',json=device)
 				print(f'Registered DeviceID: {device["deviceID"]}')
 			else:
-				#updating Devices
+				#refresh Devices reistration
 				requests.put(self.CATALOG_URL+f'/device',json=device)
 				print(f'Updated registration of DeviceID: {device["deviceID"]}')
 
 	def MQTTinfoRequest(self):
-		r=requests.get(self.CATALOG_URL+f'/broker') 
-		if self.broker and self.port:
-			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
-				self.broker = r.json()["IPaddress"]
-				self.port = r.json()["port"]
-				self.client.stop()
-				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
+		if self.broker and self.port: #if broker and port already exist...
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker is changed...
+				self.broker = r.json()["IPaddress"] #... update broker and port
+				self.port = r.json()["port"] 
+				self.client.stop()  #stop the previous client and 
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self) #create and start new client
 				self.start()
 			
-		else:
+		else: #create and start new client
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
@@ -96,10 +96,12 @@ class DeviceConnector():
 		for d in self.connected_devices["Sensors"]:
 			print('\n')	
 			topic=d["servicesDetails"][0]["topic"]
+				      
+			#Temperature and Humidity
 			if d["measureType"]==["Humidity","Temperature"]:
 				msg=dict(self.__message)
 				if self.status_airC==1: #airConditionair attivo
-					#controllare per range temporale (estate/inverno)
+					#check current season
 					month = datetime.now().month #è un intero
 					if 10<=month<=12 or 1<=month<=3: #winter
 						a_temp=random.uniform(19,21)
@@ -108,14 +110,14 @@ class DeviceConnector():
 						a_temp=random.uniform(24,26)
 						a_hum=random.uniform(50,52)
 
-				elif self.status_airC==0: #airConditionair spento
-					if flag_temp==0: #temperatura nel range corretto
+				elif self.status_airC==0: #airConditionair system off
+					if flag_temp==1: #temperature in range
 						a_temp=random.uniform(18,26)
 						if 18<=a_temp<23:
 							a_hum=random.uniform(40,50)					
 						elif 23<=a_temp<=26:
 							a_hum=random.uniform(50,60)	
-					elif flag_temp==1: #temperatura fuori range
+					elif flag_temp==0: #temperature out of range
 						a=np.arange(0,17,0.2)
 						b=np.arange(27,41)
 						c=[float(i) for i in list(a)+list(b)]
@@ -128,6 +130,7 @@ class DeviceConnector():
 				msg['bn']=d["deviceID"]
 				msg['e']=[{'n':'Temperature','value':a_temp,'timestamp':str(datetime.now()),'u':'C'},{'n':'Humidity','value':a_hum,'timestamp':str(datetime.now()),'u':'%'}]
 
+			#Acceleromete and Heart Rate
 			elif d["measureType"]==['HeartRate',"Accelerometer"]: 
 				msg=dict(self.__message)
 				msg['bn']=d["deviceID"]
@@ -157,7 +160,7 @@ class DeviceConnector():
 				msg['e']=[{'n':'HeartRate','value':a,'timestamp':str(datetime.now()),'u':'bpm'},{'n':'Accelerometer','value':abs(b),'timestamp':str(datetime.now()),'u':'m/s2'}]
 
 
-				
+			#Motion	
 			elif d["measureType"]==['Motion']:
 				msg=dict(self.__message)
 				msg['bn']=d["deviceID"]
@@ -169,7 +172,7 @@ class DeviceConnector():
 			self.client.myPublish(topic[0],msg)
 			time.sleep(15)
 
-	def notify(self,topic,payload):
+	def notify(self,topic,payload): #For receiving actuations command for lights and airConditionair system
 		#lights, airConditionair
 		payload=json.loads(payload)		
 		
