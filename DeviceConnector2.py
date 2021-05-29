@@ -209,13 +209,12 @@ if __name__=="__main__":
 	   
 	i=1
 	while True:
-		#On off del motion valutare cosa mettere (più presenza/assenza)
 		command=input('Insert the command:\n1.Set the acivity status of the patient:\n\ta."r" for rest activity\n\tb."s" for sport activity\n\tc."d" for a panik attack\n2.Set the temperature status:\n\t1=In range value\n\t0=Out of range value\n3.Set the motion sensor:\n\t1=Presence\n\t0=Unpresence\n')
 		command=command.split(',')
 		dc.RESTCommunication(sys.argv[2])
 		try:
 			while True:
-				dc.publish(command[0],int(command[1]),command[2]) #0: range heart rate, 1: temperatura(0/1=dentro/fuori range), 2: motion sensor (1/0=on/off) 
+				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperatura(0/1=in/out of range), 2: motion sensor (1/0=on/off) 
 				if i==2: #every 120s register devices or refresh registration and retrieve broker/port
 					dc.RESTCommunication(sys.argv[2])
 					dc.MQTTinfoRequest()
