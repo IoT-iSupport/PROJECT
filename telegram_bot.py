@@ -86,15 +86,6 @@ class MQTTbot:
 						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&type=line' 
 						self.bot.sendMessage(chat_ID,text=f"<a href='{url}'>Heart Rate</a>\n<a href='{url2}'>Accelerometer</a>\n<a href='{url3}'>Panik Attack</a>",parse_mode='HTML',disable_web_page_preview = False)
 
-
-		# for patient in self.dict:
-		# 	if patient["patientID"]==query_data:
-		# 		url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/1.json?api_key={patient["apikey"]}&days=1&average="daily"' 
-		# 		print(url)
-		# 		r=requests.get(url)
-		# 		print(r.json())
-
-		#self.bot.sendMessage(chat_ID, text=f"Led switched")
 			
 	def notify(self,topic,message): # receive messages from PatientControl in case of panic attack
 		payload=json.loads(message)
@@ -109,19 +100,13 @@ class MQTTbot:
 				if "chatID" in patient: #if the patient has already a doctor/care giver who needs to be notified
 					chat_IDs=patient["chatID"]
 					tosend=f'ATTENTION: The patient {patient["patientID"]}\n{self.__message["alert"]}, you should {self.__message["action"]}'
-					# buttons = [[InlineKeyboardButton(text=f'1 WEEK', callback_data=f'{patient["patientID"]}')] ]
-					# keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-					# for c in chat_IDs: #send message to all present chatiDs
-					# 	self.bot.sendMessage(c, text=tosend,reply_markup=keyboard)	
 					for c in chat_IDs: #send message to all present chatiDs
 						self.bot.sendMessage(c, text=tosend)				
 
 	def CatalogCommunication(self):
-		# print("CatalogCommunication")
-		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
 		if self.broker and self.port: #if broker and port already exist...
-			# print('if CatalogCommunication')
+		
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker/port is changed...
 				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
@@ -131,7 +116,7 @@ class MQTTbot:
 				TOPIC = f"{self.baseTopic}+/+{self.endTopic}"
 				self.client.mySubscribe(TOPIC)	
 		else: #create and start new client and subscribe to topic
-			# print('else CatalogCommunication')
+			
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
@@ -163,7 +148,6 @@ class MQTTbot:
 				for patient in self.dict:
 					if patient["patientID"]==item["patientID"]:
 						patient["chatID"]=item["telegramIDs"] #... update chatID
-		# print(self.dict)
 
 
 if __name__ == "__main__":
