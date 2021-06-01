@@ -47,15 +47,10 @@ class HomeSystemControl():
 			print('Controlling home enviroment...')
 			print(f'Patient ID: {patient["patientID"]}')
 			topicP=f'{self.baseTopic}{patient["patientID"]}/actuators/Air'
-			# while len(patient["Temperature"])>15:
-			# 	patient["Temperature"].pop(0)
-			# while len(patient["Humidity"])>15:
-			# 	patient["Humidity"].pop(0)
 			while len(patient["Motion"])>15:
 				patient["Motion"].pop(0)
 			
-			# controllo finestra temporale di 15min
-			# print(f'MOTION VECTOR:{ patient["Motion"]}\nSUM:{sum(patient["Motion"])}')
+			# control of the observation window 
 			if sum(patient["Motion"])==15: #veryfing the patient presence in the room for at least 15 min
 				print('User presence detected...')
 				now_time=datetime.today().time()
@@ -83,7 +78,6 @@ class HomeSystemControl():
 
 					#Summer:
 					elif now_month>=4 or now_month<=9: #from April to September
-						# print(patient["Temperature"])
 						Out=[t for t in patient["Temperature"] if t>26 or t<24] #out of range values
 						
 						if len(Out)>=15:
@@ -108,7 +102,6 @@ class HomeSystemControl():
 						self.client.myPublish(topicP,msg)  
 	
 			else: #if the patient is not present
-				# print('User presence not detected')
 				if patient["status"]==1:
 					msg={"patientID":patient["patientID"],"AirConditionairStatus":0}
 					patient["status"]=0
