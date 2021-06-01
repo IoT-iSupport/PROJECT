@@ -33,7 +33,6 @@ class DataAnalysis():
 
 	def stop(self):
 		self.client.stop()
-	#patient={"patientID":int(item["patientID"]),"apikey":item["apikey"],"channel":item["channel"],"day":0,"min_value":[],"max_value":[],"mean_value":[]}	
 			
 	def notify(self,topic,payload):
 		#It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor
@@ -41,6 +40,7 @@ class DataAnalysis():
 		#weekly report of average heart rate 
 		payload=json.loads(payload)
 		id=int(topic.split("/")[1])
+		#search the patient in the list created with the catalog communication
 		for i,pat in enumerate(self.list_dict): 
 			if id==pat["patientID"]:
 				pos=i
@@ -48,10 +48,8 @@ class DataAnalysis():
 			bodyHR=payload["HeartRate"]
 			print(f'\nHR: {bodyHR}\n')
 			bodyACC=payload["Accelerometer"]
-			# print(f'ACC:{bodyACC}\n')
 			bodyMOT=payload["Motion"]
-			# print(f'MOT:{bodyMOT}\n')
-			self.list_dict[pos]["Weekly Measurements"]["day"] += 1
+			self.list_dict[pos]["Weekly Measurements"]["day"] += 1 
 			for feed in bodyHR:
 				date=feed["date"].split("T")[1].split(":") #we care about the hour (date[0])
 				#the HR measureament are divided into 3 time slots (0-8/8-19/19-24):
@@ -68,7 +66,6 @@ class DataAnalysis():
 			
 			#activity report of the patient
 			temp = []
-		
 			for feedACC,feedHR in zip(bodyACC,bodyHR):
 				if float(feedACC["value"])>2: #first threshold
 					temp.append(float(feedHR["value"]))
@@ -84,24 +81,20 @@ class DataAnalysis():
 						temp=[]	
 					else:
 						temp=[]	
-			if temp !=[]: #last window
+			if temp !=[]: #last window is not evalueted because of an if condition is satisfied - so the temp is not emptied
 				if len(temp)>5:
-					# print(statistics.mean(temp))
 					if statistics.mean(temp)<80:
 						self.list_dict[pos]["Weekly Measurements"]["activity"][0]+=len(temp)
 					elif 80<statistics.mean(temp)<120:
 						self.list_dict[pos]["Weekly Measurements"]["activity"][1]+=len(temp)
 					else:
 						self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
-					
 
 			#weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door 
 			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][1]+=len(bodyMOT) #total number of samples
-			# for item in bodyMOT:
-			# 	if item["value"]==1:
-			# 		self.list_dict[pos]["bedroomstatus"][0]+=1 #number of Motion detection
 			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][0] = sum([float(item["value"]) for item in bodyMOT if item["value"]!=None])
 
+			#the publishing is done after 7 days of analysis - so the observation window are emptied
 			if self.list_dict[pos]["Weekly Measurements"]["day"]==7:
 				self.publish(id,"weekly")
 				self.list_dict[pos]["Weekly Measurements"]["number"] = [0]*3
@@ -109,21 +102,17 @@ class DataAnalysis():
 				self.list_dict[pos]["Weekly Measurements"]["day"]=0
 				self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"]=[0]*2
 				self.list_dict[pos]["Weekly Measurements"]["activity"]=[0]*3
-			elif  self.list_dict[pos]["Weekly Measurements"]["day"]==1:
-				self.publish(id,"weekly")
 
 		else: #recurrence of panic attacks 
 			self.list_dict[pos]["Monthly Measurements"]["day"]+=1
 			self.list_dict[pos]["Monthly Measurements"]["panik attack"]+=float(payload["Number of panik attack"])
+			#the publishing is done after 30 days of analysis
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
 				self.publish(id,"monthly")
-				self.list_dict[pos]["Monthly Measurements"]["day"]=0
-			elif self.list_dict[pos]["Monthly Measurements"]["day"]==1:
-				self.publish(id,"monthly")
-			
+				self.list_dict[pos]["Monthly Measurements"]["day"]=0			
 
 	def publish(self,id,command):
-		i= [int(pos) for pos,pat in enumerate(self.list_dict) if id==pat["patientID"]][0] #it is unique
+		i= [int(pos) for pos,pat in enumerate(self.list_dict) if id==pat["patientID"]][0] #it is unique - search of the position of the patient in the list
 		topic=self.DATtopicP_base+str(id)+"/nodered"
 		print(topic)
 		if command=='weekly':
@@ -207,8 +196,8 @@ class DataAnalysis():
 				for patient in self.list_dict:
 					if patient["patientID"]==item["patientID"]:
 						patient["PatientInfo"]["apikey"]=item["apikey"] #... update apikey and channel
-						patient["PatientInfo"]["channel"]=item["channel"]			
-		# print(self.list_dict)
+						patient["PatientInfo"]["channel"]=item["channel"]		
+						
 if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
@@ -221,4 +210,4 @@ if __name__=="__main__":
 	
 	while True:
 		D.CatalogCommunication()
-		time.sleep(120)
+		time.sleep(120) #the Catalog communication is done every two minutes 
