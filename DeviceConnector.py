@@ -19,7 +19,7 @@ class DeviceConnector():
 		#initialisation for broker and port
 		self.broker=''
 		self.port=0
-		
+		#message structure
 		self.__message={
 			'patientID':self.patient, 
 			'bn':'',
@@ -36,7 +36,7 @@ class DeviceConnector():
 		self.connected_devices = json.load(open(filename))
 		
 		self.t={}
-		#t model:
+		#t structure:
 		#t = {
 		# "Light": "iSupport/1/actuators/Light",
 		# "Air": "iSupport/1/actuators/Air"
@@ -76,13 +76,6 @@ class DeviceConnector():
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 			self.start()
 
-		
-	#Solo per noi per aggiungere i devices alla lista dei connessi
-	# def insertNewDevice(self,newDevice):
-	# 	#insert a new device (json data type) into the catalog exploiting REST Web Services
-	# 	self.connected_devices[].append(json.loads(newDevice))
-	# 	#print(self.connected_devices)
-	
 	def start(self):
 		self.client.start()
 		for topic in self.t.values():
@@ -91,8 +84,10 @@ class DeviceConnector():
 	def stop(self):
 		self.client.stop()
 
-	def publish(self,range_hr,flag_temp,flag_motion): #range_hr è per resting/danger/sport per HR, flag_temp per generare temp e hum fuori dai range "normali" (o normale, 1 altrimenti)
-		#flag_motion=1/0 on(pff)
+	def publish(self,range_hr,flag_temp,flag_motion): 
+		#flag_motion=is a boolean that stands for 1= Presence or 0=Not presence
+		#range_hr: is a letter r(=rest)/d(=danger)/s(=sport) for HR measurements
+		#flag_temp = is a boolean for temp e hum out of comfort-home-status ranges 1 = in range value, 0=out of range value
 		for d in self.connected_devices["Sensors"]:
 			print('\n')	
 			topic=d["servicesDetails"][0]["topic"]
