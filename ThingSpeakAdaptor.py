@@ -5,7 +5,6 @@ from datetime import datetime
 import sys
 import time
 
-# from datetime import strftime
 #is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer). 
 # It works as a MQTT publisher for sending data from storage (ThingSpeak) to the “Data Analysis”. 
 
@@ -28,13 +27,11 @@ class ThingSpeakGateway():
 		#initialisation for broker and port
 		self.broker=''
 		self.port=0
-		
 		self.sleep_dict = []
-		#### self.tic=time.time() ###
 
 	def start(self): #it starts the client and subscribes to topics
 		self.client.start()
-		for t in endTopic:
+		for t in self.endTopic:
 			topic = self.baseTopic + '+/sensors/' + t
 			self.client.mySubscribe(topic)
 		self.client.mySubscribe(self.PAtopic)
@@ -71,20 +68,6 @@ class ThingSpeakGateway():
 					url=f'{self.WriteBaseUrl}{self.apikeysW[i]}&field{str(numbers[0])}={str(round(payload["e"][0]["value"],2))}&field{str(numbers[1])}={str(round(payload["e"][1]["value"],2))}'	
 					
 				r=requests.get(url)
-				
-	
-	# def notifyHandler(self,url,i,payload):
-	# 	#every message of each patient have to wait 15s to make the get request for writing on the channel
-	# 	while time.time()-self.timestamp[i]>=15:
-	# 		print(url)
-	# 		data_s=datetime.now()
-	# 		r=requests.get(url)
-	# 		self.timestamp[i]=time.time()
-	# 		print('Waiting for 15s')
-	# 		data=payload["e"][0]["timestamp"].split(' ')
-	# 		data=datetime.strptime(data[1],'%H:%M:%S.%f')
-			
-	# 		print(f'Waited time: {data_s-data}')
 
 	def publish(self): #sending data from storage (ThingSpeak) to the Data Analysis microservice
 		for i,p in enumerate(self.patients):
