@@ -31,28 +31,31 @@ class HomeSystemControl():
 		payload=json.loads(payload)
 		topic=topic.split('/')
 		id=topic[1] #patientID
+		
 		for patient in self.dict:
 			if patient["patientID"]==id:
 				
 				if topic[3]==self.endTopic[0]:
 					patient["Temperature"].append(float(payload["e"][0]["value"]))
 					patient["Humidity"].append(float(payload["e"][1]["value"]))
+					
 				elif topic[3]==self.endTopic[1]:
 					patient["Motion"].append(int(payload["e"][0]["value"]))
 
 	def controlStrategy(self):
-		print('Controlling home enviroment...')
 		for patient in self.dict:
+			print('Controlling home enviroment...')
+			print(f'Patient ID: {patient["patientID"]}')
 			topicP=f'{self.baseTopic}{patient["patientID"]}/actuators/Air'
-			while len(patient["Temperature"])>15:
-				patient["Temperature"].pop(0)
-			while len(patient["Humidity"])>15:
-				patient["Humidity"].pop(0)
+			# while len(patient["Temperature"])>15:
+			# 	patient["Temperature"].pop(0)
+			# while len(patient["Humidity"])>15:
+			# 	patient["Humidity"].pop(0)
 			while len(patient["Motion"])>15:
 				patient["Motion"].pop(0)
 			
 			# controllo finestra temporale di 15min
-			print(f'MOTION VECTOR: patient["Motion"]\nSUM:{sum(patient["Motion"])}')
+			# print(f'MOTION VECTOR:{ patient["Motion"]}\nSUM:{sum(patient["Motion"])}')
 			if sum(patient["Motion"])==15: #veryfing the patient presence in the room for at least 15 min
 				print('User presence detected...')
 				now_time=datetime.today().time()
@@ -80,6 +83,7 @@ class HomeSystemControl():
 
 					#Summer:
 					elif now_month>=4 or now_month<=9: #from April to September
+						# print(patient["Temperature"])
 						Out=[t for t in patient["Temperature"] if t>26 or t<24] #out of range values
 						
 						if len(Out)>=15:
@@ -104,7 +108,7 @@ class HomeSystemControl():
 						self.client.myPublish(topicP,msg)  
 	
 			else: #if the patient is not present
-				print('User presence not detected')
+				# print('User presence not detected')
 				if patient["status"]==1:
 					msg={"patientID":patient["patientID"],"AirConditionairStatus":0}
 					patient["status"]=0
@@ -114,7 +118,7 @@ class HomeSystemControl():
 	def CatalogCommunication(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
-			print('if CatalogCommunication')
+			
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
 				self.broker = r.json()["IPaddress"]
 				self.port = r.json()["port"]
@@ -122,7 +126,7 @@ class HomeSystemControl():
 				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 				self.start()	
 		else:
-			print('else CatalogCommunication')
+			
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
@@ -153,7 +157,7 @@ if __name__=="__main__":
 	tic=time.time()
 	while True:
 		
-		if time.time()-tic>=60*5:
+		if time.time()-tic>=60*10:
 			#every 5 minutes the Home enviroment is controlled 
 			HSControl.CatalogCommunication()
 			HSControl.controlStrategy()
