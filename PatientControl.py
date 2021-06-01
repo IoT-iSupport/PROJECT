@@ -30,35 +30,8 @@ class PatientControl():
 
 	def start(self):
 		self.client.start()
-		# for t in self.endTopic:
-		# 	topic=f'{self.baseTopic}+/sensors/'+t
-		# 	self.client.mySubscribe(topic)
-
-	# def notify(self,topic,payload):
-	# 	payload=json.loads(payload)
-	# 	topic=topic.split('/')
-	# 	id=int(topic[1]) 
-
-	# 	for patient in self.dict:
-	# 		if int(patient["patientID"])==id:
-	# 			if topic[3]=='HeartRate':
-	# 				if len(patient["windowHR"])==len(patient["windowACC"]):
-	# 					patient["windowHR"].append(payload["e"][0]["value"])
-	# 				else:
-	# 					patient["windowHR"].pop()
-	# 					patient["windowHR"].append(payload["e"][0]["value"])
-	# 			elif topic[3]=='Accelerometer':
-	# 				if len(patient["windowHR"])-1==len(patient["windowACC"]):
-	# 					#if it has recieved a HR measurement first
-	# 					patient["windowACC"].append(payload["e"][0]["value"])
-	# 				else:
-	# 					print(f'lenHR: {len(patient["windowHR"])}, \n lenACC: {len(patient["windowACC"])}')
-	# 					#if not, the couple HR-ACC of the same time is not recorded. So Discard the HR measure
-	# 					patient["windowHR"].pop()
-	# 			print(f'Patient: {patient["patientID"]}, windows: {patient["windowHR"]},{patient["windowACC"]}\n')
-
+		
 	def controlStrategy(self):
-		#removing of the first Measure and windows control
 		for patient in self.dict:
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/1.json?minutes=10'
 			r=requests.get(url) #retrive 10 minutes Accelerometer data
@@ -71,10 +44,6 @@ class PatientControl():
 			if body!=-1 and body2!=-1: #data retived correctly
 				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ]
 				patient["windowACC"] = [float(item["field2"]) for item in body2["feeds"] if item["field2"]!=None ]
-				# for item in body["feeds"]:
-				# 	patient["windowHR"].append(item["field1"])
-				# for item in body2["feeds"]:
-				# 	patient["windowACC"].append(item["field2"])
 				
 				if patient["windowHR"] != [] and patient["windowACC"] != []:
 
@@ -110,8 +79,6 @@ class PatientControl():
 					print(f"Acceleration current median: {patient['lastACC']}")
 					
 	def CatalogCommunication(self):
-		#print('Catalog Communication')
-		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
 			
