@@ -29,7 +29,7 @@ class LightShift():
 			if t1<=now<=t2: # if it's time to switch on the lights... 
 				if patient["status"]==1: #... if lights are already switched on, nothing is done
 					pass
-				else: #an actuation command is sent to to switch lights of this patient on
+				else: #an actuation command is sent to to switched lights of this patient on
 					patient["status"]=1
 					msg={'patientID':patient["patientID"], 
 						'bn':'ligth_'+str(patient["patientID"]),
@@ -40,7 +40,7 @@ class LightShift():
 						}
 					self.client.myPublish(topic,msg)
 			else: # if it's time to switch off the Lights... 
-				if patient["status"]==1: #... and Lights are switch on
+				if patient["status"]==1: #... and Lights are switched on
 					patient["status"]=0
 					msg={'patientID':patient["patientID"], 
 						'bn':'light_'+str(patient["patientID"]),
@@ -52,7 +52,6 @@ class LightShift():
 					self.client.myPublish(topic,msg) #an actuation command is sent to to switch lights of this patient off
 
 	def CatalogCommunication(self):
-		#with the catalog, for retriving information
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
 		if self.broker and self.port: #if broker and port already exist...
 			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker is changed...
@@ -91,7 +90,7 @@ if __name__=="__main__":
 
 	LS=LightShift(CATALOG_URL,bT,clientID)	
 	while True:
-		#every 60s retrieve broker/port and patient "LightsSchedule" and perform the control strategy to check if it's time to switch on/off lights
+		#every 60s broker/port and patient "LightsSchedule" are  retrieved and control strategy is performed to check if it's time to switch on/off lights
 		LS.CatalogCommunication()
 		LS.controlStrategy()
 		time.sleep(60)
