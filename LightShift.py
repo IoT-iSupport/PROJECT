@@ -29,7 +29,7 @@ class LightShift():
 			if t1<=now<=t2: # if it's time to switch on the lights... 
 				if patient["status"]==1: #... if lights are already switched on, nothing is done
 					pass
-				else: #an actuation command is sent to to switched lights of this patient on
+				else: #an actuation command is sent to switched lights of this patient on
 					patient["status"]=1
 					msg={'patientID':patient["patientID"], 
 						'bn':'ligth_'+str(patient["patientID"]),
@@ -71,10 +71,10 @@ class LightShift():
 		body2=r.json()
 		patient_ID_list=[ID["patientID"] for ID in self.dict] #list of patient ID already retreived and present in self.dict
 		for item in body2:
-			if not item["patientID"] in patient_ID_list: #if the patient ID is not present in self.dict it's added
+			if not item["patientID"] in patient_ID_list: #if the patient ID is not present in self.dict, it's added
 				new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #light status: 0 off, status: 1 on
 				self.dict.append(new_patient)
-			else: #if it is present "LightsSchedule" is updated
+			else: #if it is present, "LightsSchedule" is updated
 				for patient in self.dict:
 					if patient["patientID"]==item["patientID"]:
 						patient["time"]=item["LightsSchedule"]
