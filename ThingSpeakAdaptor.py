@@ -5,7 +5,7 @@ from datetime import datetime
 import sys
 import time
 
-#is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer). 
+#It is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer). 
 # It works as a MQTT publisher for sending data from storage (ThingSpeak) to the “Data Analysis”. 
 
 
@@ -36,7 +36,7 @@ class ThingSpeakGateway():
 			self.client.mySubscribe(topic)
 		self.client.mySubscribe(self.PAtopic)
 
-	def notify(self,topic,payload): #It receives measurments from Device Connectors send them to ThingSpeak 
+	def notify(self,topic,payload): #It receives measurments from Device Connectors and send them to ThingSpeak 
 		payload=json.loads(payload)
 		topic=topic.split('/')
 		id=int(topic[1]) #patientID
@@ -48,13 +48,13 @@ class ThingSpeakGateway():
 		for i,p in enumerate(self.patients):
 			if int(p)==id:
 				for i,patient in enumerate(self.sleep_dict):
-					if id == patient['Patient']: #if measurement received belongs to a patient present in sleep_dict 
+					if id == patient['Patient']: #if received measurement belongs to a patient present in sleep_dict 
 						t = time.time()-patient['sleep_time']
 						print(f'Sleep MODE - elapsed time: {t}s')
 						if t<16: #and if 15 seconds have not elapsed yet
 							exit() #exit from notify method and the measurment is not stored in thingspeak
 						else:
-							self.sleep_dict.pop(i) #Patient is removed from the list, so measurments can be storedagain
+							self.sleep_dict.pop(i) #Patient is removed from the list, so measurments can be stored again
 							break
 				#save measurment in the corresponding ThingSpeak field
 				if topic[3]=='Body':
@@ -202,7 +202,7 @@ if __name__=="__main__":
 
 	while True:
 		today= datetime.now()
-		if today.hour==11 and flag: #Monday condition, It has to enter in the condition once a day
+		if today.hour==11 and flag: #Monday condition. It has to enter in the condition once a day
 			gateway.publish() # once a day it retrieves data from ThingSpeak and publishes them to Data Analysis
 			gateway.CatalogCommunication() #and retrieves broker/port and patient information
 			flag=False
