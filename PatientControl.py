@@ -25,24 +25,26 @@ class PatientControl():
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = baseTopic
 		self.clientID=clientID
+		
+		#initialisation for broker and port
 		self.broker=''
 		self.token=0
 
 	def start(self):
 		self.client.start()
 		
-	def controlStrategy(self):
+	def controlStrategy(self): #it checks if a panic attack has occurred 
 		for patient in self.dict:
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/1.json?minutes=10'
-			r=requests.get(url) #retrive 10 minutes Accelerometer data
+			r=requests.get(url) #retrieve 10 minutes Accelerometer data
 			body=r.json()
 			
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/2.json?minutes=10'
-			r=requests.get(url) #retrive 10 minutes HR data
+			r=requests.get(url) #retrieve 10 minutes HR data
 			body2=r.json()
 
-			if body!=-1 and body2!=-1: #data retived correctly
-				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ]
+			if body!=-1 and body2!=-1: #data retrieved correctly
+				patient["windowHR"] = [float(item["field1"]) for item in body["feeds"] if item["field1"]!=None ] #None are removed
 				patient["windowACC"] = [float(item["field2"]) for item in body2["feeds"] if item["field2"]!=None ]
 				
 				if patient["windowHR"] != [] and patient["windowACC"] != []:
@@ -52,11 +54,11 @@ class PatientControl():
 						patient['lastACC']=median(patient["windowACC"])
 						
 					
-					if median(patient["windowHR"]) > 1.5*patient['lastHR']:
+					if median(patient["windowHR"]) > 1.5*patient['lastHR']: #if current HR increases more than 50% of the previous HR
 						print('Condizione HR fatta')
-						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']):
+						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']): #if current acceleromenter measures do not increases more than more than twice the previous values
 							print('Condizione ACC fatta: EMERGENCY ALERT!')
-							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panik attack event
+							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panic attack event
 							print(url)
 							msg={"patientID":patient["patientID"],"alertStatus":1}
 							topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
@@ -66,7 +68,7 @@ class PatientControl():
 							topicTS = self.baseTopic+str(patient["patientID"])+'/PA'
 							self.client.myPublish(topicTS,sleep_msg)
 							time.sleep(15)
-							r=requests.get(url) #ThingSpeak request for panik attack event
+							r=requests.get(url) #ThingSpeak request to store panic attack event
 							
 					
 					patient['lastHR']=median(patient["windowHR"])
@@ -79,46 +81,47 @@ class PatientControl():
 					print(f"Acceleration current median: {patient['lastACC']}")
 					
 	def CatalogCommunication(self):
-		r=requests.get(self.CATALOG_URL+f'/broker') 
+		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
 		if self.broker and self.port:
 			
-			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
-				self.broker = r.json()["IPaddress"]
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker is changed...
+				self.broker = r.json()["IPaddress"] #... update broker and port
 				self.port = r.json()["port"]
-				self.client.stop()
-				self.client=MyMQTT(self.clientID,self.broker,self.port)
+				self.client.stop() #stop the previous client and 
+				self.client=MyMQTT(self.clientID,self.broker,self.port) #create and start new client
 				self.start()	
-		else:
+		else: #create and start new client
 		
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port)
 			self.start()
 
-		r=requests.get(self.CATALOG_URL+f'/token')
-		if self.token:
-			if not self.token== r.json():
-				self.token=r.json()
+		r=requests.get(self.CATALOG_URL+f'/token') #retrieve token
+		if self.token: 
+			if not self.token== r.json(): #if token is changed
+				self.token=r.json() # token is updated
 		else:
 			self.token=r.json()
 
 		#patients information
 		r=requests.get(self.CATALOG_URL+f'/patients') 
-		body2=r.json() #lista di dizionari
-		patient_ID_list=[ID["patientID"] for ID in self.dict]
+		body2=r.json() 
+		patient_ID_list=[ID["patientID"] for ID in self.dict] #list of patient ID already retrieved and present in self.dict
 		for item in body2:
-			if not item["patientID"] in patient_ID_list:
+			if not item["patientID"] in patient_ID_list: #if the patient ID is not present in self.dict, it's added
 				new_patient={"patientID":item["patientID"], "channel":item["channel"], "apikeyWrite": item["apikey"][0],"apikeyRead": item["apikey"][1],"windowHR":[],"windowACC":[]}
 				self.dict.append(new_patient)
-			else:
+			else: #if it is present
 				for patient in self.dict:
 					if patient["patientID"]==item["patientID"]:
-						patient["apikeyWrite"]=item["apikey"][0] #... update apikey and channel
+						patient["apikeyWrite"]=item["apikey"][0] #...apikey and channelID are updated
 						patient["apikeyRead"]=item["apikey"][1]
 						patient["channel"]=item["channel"]	
 			
 
 if __name__=="__main__":
+	#sys.argv[1] is Configuration_file.json				      
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
@@ -130,7 +133,7 @@ if __name__=="__main__":
 	PC.CatalogCommunication()
 	tic=time.time()
 	while True:
-		if time.time()-tic>=(60*5):
+		if time.time()-tic>=(60*5): #every 5 minutes broker, port, token and patient information are retrieved and control strategy is performed
 			PC.CatalogCommunication()
 			PC.controlStrategy()
 			tic=time.time()
