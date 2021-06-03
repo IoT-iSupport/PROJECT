@@ -1,14 +1,11 @@
-# is a control strategy for monitoring data from the sensors that interact with the patient 
-# (heart rate sensor, accelerometer), communicating via MQTT protocol with the Device Connector
-# (information about the Broker are retrived through REST Web Service from the Catalog). 
+# It is a control strategy for monitoring data from the sensors that interact with the patient 
+# (heart rate sensor, accelerometer).It retreive data from ThingSpeak through REST 
 # It integrates a strategy that identifies abnormal values from the heart rate (H.R.) sensor and accelerometer: 
 # if an increase in heart rate is detected with no corresponding change in the patient's activity state a panic attack is detected.
 #  For example, if in a 10-minute observation window an increase in heart rate of 50% is detected and accelerometer activity
 #  in the same observation window is increased less than 20%, a panic attack is detected. 
-# In this case the Patient Control publishes via MQTT to:
-# •	the ThingSpeak the event and the timestamp;
-# •	the telegramBot the event and the timestamp;
-# •	the Device Connector a actuation command for activating the music player. - da rivalutare
+# In this case the Patient Control publishes via MQTT (information about the Broker are retrieved through REST Web Service from the Catalog) to the telegramBot the event and the timestamp and store the event and the timestamp in ThingSpeak;
+
 import json
 import requests
 from myMQTT import *
