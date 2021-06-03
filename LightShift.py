@@ -69,7 +69,7 @@ class LightShift():
 		#retrieve patient ID and LightsSchedule
 		r=requests.get(CATALOG_URL+f'/patients') 
 		body2=r.json()
-		patient_ID_list=[ID["patientID"] for ID in self.dict] #list of patient ID already retreived and present in self.dict
+		patient_ID_list=[ID["patientID"] for ID in self.dict] #list of patient ID already retrieved and present in self.dict
 		for item in body2:
 			if not item["patientID"] in patient_ID_list: #if the patient ID is not present in self.dict, it's added
 				new_patient={"patientID":item["patientID"], "time":item["LightsSchedule"],'status':0} #light status: 0 off, status: 1 on
