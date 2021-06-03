@@ -29,8 +29,8 @@ class DeviceConnector():
 					]
 			}
 		self.previous_hr=60 #inizilizzazione per la heart rate "rest"
-		self.status_airC=0 #per airConditionair_1 0 spento, 1 acceso
-		self.status_light=0 #for the lights
+		self.status_airC=0 #for airConditionair_1 0 off, 1 on
+		self.status_light=0 #for the lights 0 off, 1 on
 
 	def RESTCommunication(self,filename):
 		self.connected_devices = json.load(open(filename))
@@ -95,9 +95,9 @@ class DeviceConnector():
 			#Temperature and Humidity
 			if d["measureType"]==["Humidity","Temperature"]:
 				msg=dict(self.__message)
-				if self.status_airC==1: #airConditionair attivo
+				if self.status_airC==1: #airConditionair on
 					#check current season
-					month = datetime.now().month #è un intero
+					month = datetime.now().month #it is an integer
 					if 10<=month<=12 or 1<=month<=3: #winter
 						a_temp=random.uniform(19,21)
 						a_hum=random.uniform(40,42)
@@ -113,10 +113,10 @@ class DeviceConnector():
 						elif 23<=a_temp<=26:
 							a_hum=random.uniform(50,60)	
 					elif flag_temp==0: #temperature out of range
-						a=np.arange(0,17,0.2)
-						b=np.arange(27,41)
+						a=np.arange(0,17,0.2) #temperature lower than 17°C
+						b=np.arange(27,41)    #temperature higher than 27°C
 						c=[float(i) for i in list(a)+list(b)]
-						a_temp=choice(c)
+						a_temp=choice(c) 
 						if a_temp<=17:
 							a_hum=random.uniform(40,50)					
 						elif a_temp>=27:
@@ -125,28 +125,27 @@ class DeviceConnector():
 				msg['bn']=d["deviceID"]
 				msg['e']=[{'n':'Temperature','value':a_temp,'timestamp':str(datetime.now()),'u':'C'},{'n':'Humidity','value':a_hum,'timestamp':str(datetime.now()),'u':'%'}]
 
-			#Acceleromete and Heart Rate
+			#Accelerometer and Heart Rate
 			elif d["measureType"]==['HeartRate',"Accelerometer"]: 
 				msg=dict(self.__message)
 				msg['bn']=d["deviceID"]
 				
+				#Heart Rate
 				if range_hr=='r': #rest
-					# shape, scale = 0., 1. # mean=4, std=2*sqrt(2)
 					loc, scale = 60, 1
-					a= np.random.logistic(loc, scale) # genera un solo valore  
-					# print(a)
-					# self.previous_hr=a
+					a= np.random.logistic(loc, scale) 
 				elif range_hr=='d' or range_hr=='s': #danger o sport
-					shape, scale = 5., 10.  # mean=4, std=2*sqrt(2)
+					shape, scale = 5., 10. 
 					a = np.random.gamma(shape, scale)+110
-
-				if range_hr=='r' or range_hr=='d':
+				
+				#Accelerometer
+				if range_hr=='r' or range_hr=='d': #rest or danger/panic attack
 					n=random.randint(5,len(self.linesREST))		
 					m=self.linesREST[n].split(',')
 					float_number=[float(number) for number in m]
 					b=float_number[4]
 				
-				elif range_hr=='s':
+				elif range_hr=='s': #sport
 					n=random.randint(5,len(self.linesSPORT))		
 					m=self.linesSPORT[n].split(',')
 					float_number=[float(number) for number in m]
@@ -168,7 +167,6 @@ class DeviceConnector():
 			time.sleep(15)
 
 	def notify(self,topic,payload): #For receiving actuations command for lights and airConditionair system
-		#lights, airConditionair
 		payload=json.loads(payload)		
 		
 		if topic.split('/')[3] == 'Light':
@@ -209,12 +207,11 @@ if __name__=="__main__":
 		dc.RESTCommunication(sys.argv[2])
 		try:
 			while True:
-				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperatura(0/1=in/out of range), 2: motion sensor (1/0=on/off) 
+				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperature(0/1=in/out of range), 2: motion sensor (1/0=on/off) 
 				if i==2: #every 120s register devices or refresh registration and retrieve broker/port
 					dc.RESTCommunication(sys.argv[2])
 					dc.MQTTinfoRequest()
-					i=0
-				# time.sleep(45)  
+					i=0 
 				i=i+1
 		except KeyboardInterrupt: #CRTL+C for changing status 
 			continue
