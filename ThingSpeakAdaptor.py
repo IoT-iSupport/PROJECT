@@ -199,13 +199,16 @@ if __name__=="__main__":
 	gateway=ThingSpeakGateway(CATALOG_URL,bT,endTopic,PAtopic,clientID)
 	gateway.CatalogCommunication()
 	flag=True
-
+	prev = datetime.now()
 	while True:
 		today= datetime.now()
-		if today.hour==11 and flag: #Monday condition. It has to enter in the condition once a day
+		if today.hour==12 and flag: #Monday condition. It has to enter in the condition once a day
 			gateway.publish() # once a day it retrieves data from ThingSpeak and publishes them to Data Analysis
 			gateway.CatalogCommunication() #and retrieves broker/port and patient information
 			flag=False
 		elif today.hour==0: #Next day the flag is restored to True
 			flag=True
+		elif today.minute-prev.minute>2:
+			gateway.CatalogCommunication()
+			prev = today
 	get.stop()
