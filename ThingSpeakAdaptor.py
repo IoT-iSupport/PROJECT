@@ -83,63 +83,66 @@ class ThingSpeakGateway():
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
 						payload_HR.append(feed)
 				
-				f=2 #accelerometer measurements
-				field=f"field{f}"
-				url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
-				r=requests.get(url) #retrive one day data
-				body=r.json()
-				payload_ACC=[]
+			f=2 #accelerometer measurements
+			field=f"field{f}"
+			url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
+			r=requests.get(url) #retrive one day data
+			body=r.json()
+			payload_ACC=[]
+			if body!=-1:
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
 						payload_ACC.append(feed)
 				
-				f=3 # motion sensor
-				field=f"field{f}"
-				url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
-				r=requests.get(url) #retrive one day data
-				body=r.json()
-				payload_MOT=[]
+			f=3 # motion sensor
+			field=f"field{f}"
+			url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
+			r=requests.get(url) #retrive one day data
+			body=r.json()
+			payload_MOT=[]
+			if body!=-1:
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
 						payload_MOT.append(feed)
 
-				f=5 # temperature measurements
-				field=f"field{f}"
-				url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
-				r=requests.get(url) #retrive one day data
-				body=r.json()
-				payload_TEM=[]
+			f=5 # temperature measurements
+			field=f"field{f}"
+			url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
+			r=requests.get(url) #retrive one day data
+			body=r.json()
+			payload_TEM=[]
+			if body!=-1:
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
 						payload_TEM.append(feed)
 
-				f=6 #humidity measurements
-				field=f"field{f}"
-				url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
-				r=requests.get(url) #retrive one day data
-				body=r.json()
-				payload_HUM=[]
+			f=6 #humidity measurements
+			field=f"field{f}"
+			url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
+			r=requests.get(url) #retrive one day data
+			body=r.json()
+			payload_HUM=[]
+			if body!=-1:
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
 						payload_HUM.append(feed)
-
-
+			if not payload_HR==[] and not payload_MOT==[] and not payload_ACC==[] and not payload_TEM==[] and not payload_HUM==[]:
+				payload={'HeartRate':payload_HR,'Accelerometer':payload_ACC,'Motion':payload_MOT, 'Temperature':payload_TEM, 'Humidity':payload_HUM}
 				topic=f'{self.baseTopic}{p}/statistics/weekly'
+				self.client.myPublish(topic, payload) # publish data to DataAnalysis with the topic ".../weekly"
+				
 
-				if not payload_HR==[] and not payload_MOT==[] and not payload_ACC==[] and not payload_TEM==[] and not payload_HUM==[]:
-					payload={'HeartRate':payload_HR,'Accelerometer':payload_ACC,'Motion':payload_MOT, 'Temperature':payload_TEM, 'Humidity':payload_HUM}
-					self.client.myPublish(topic, payload) # publish data to DataAnalysis with the topic ".../weekly"
-
-				f=4 # number of panic attack
-				field=f"field{f}"
-				url=f'{self.ReadBaseUrl}{str(self.channels[i])}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
-				r=requests.get(url) #retrive one day data
-				body=r.json()
-				numberPA=0
+			f=4 # number of panic attack
+			field=f"field{f}"
+			url=f'{self.ReadBaseUrl}{str(self.channels[i])}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
+			r=requests.get(url) #retrive one day data
+			body=r.json()
+			numberPA=0
+			if body!=-1:
 				for measure in range(len(body["feeds"])): 
 					if body["feeds"][measure][field]: # None are removed
 						numberPA+=1
