@@ -204,11 +204,10 @@ if __name__=="__main__":
 		today= datetime.now()
 		if today.hour==12 and flag: #Monday condition. It has to enter in the condition once a day
 			gateway.publish() # once a day it retrieves data from ThingSpeak and publishes them to Data Analysis
-			gateway.CatalogCommunication() #and retrieves broker/port and patient information
 			flag=False
 		elif today.hour==0: #Next day the flag is restored to True
 			flag=True
 		elif today.minute-prev.minute>2:
-			gateway.CatalogCommunication()
+			gateway.CatalogCommunication()  #and retrieves broker/port and patient information
 			prev = today
 	get.stop()
