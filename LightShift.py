@@ -27,9 +27,7 @@ class LightShift():
 			t2=datetime.strptime(times[1],"%H:%M").time() #time to switch off the lights 
 			
 			if t1<=now<=t2: # if it's time to switch on the lights... 
-				if patient["status"]==1: #... if lights are already switched on, nothing is done
-					pass
-				else: #an actuation command is sent to switched lights of this patient on
+				if patient["status"]==0: # if lights are switched off, an actuation command is sent to switched lights of this patient on (nothing is done if lights are already switched on)
 					patient["status"]=1
 					msg={'patientID':patient["patientID"], 
 						'bn':'ligth_'+str(patient["patientID"]),
@@ -49,7 +47,7 @@ class LightShift():
 								{'n':'Light','value':0, 'timestamp':time.time(),'unit':'Bool'},
 								]
 						}
-					self.client.myPublish(topic,msg) #an actuation command is sent to to switch lights of this patient off
+					self.client.myPublish(topic,msg) #an actuation command is sent to switch lights of this patient off
 
 	def CatalogCommunication(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
@@ -80,7 +78,7 @@ class LightShift():
 						patient["time"]=item["LightsSchedule"]
 		
 if __name__=="__main__":
-	# command line argument in position 1 is the Configuration_file.json
+	# sys.argv[1] is the Configuration_file.json
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
