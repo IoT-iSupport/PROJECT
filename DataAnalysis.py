@@ -10,10 +10,6 @@ import time
 # - recurrence of panic attacks (example: number of panic attack in the last month);
 # - weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door (Flow chart 2).
 # It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor and as a MQTT publisher that sends processed data to Node-RED.
-# CATALOG_URL="http://127.0.0.1:8080"
-
-# DAtopicS="iSupport/+/statistics/#" 
-# DATtopicP_base="iSupport/"
 
 class DataAnalysis():
 	def __init__(self,CATALOG_URL,topic_base,clientID):
@@ -24,27 +20,30 @@ class DataAnalysis():
 		self.list_dict=[]
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
 		self.ReadBaseUrl="https://api.thingspeak.com/channels/"
+		
+		#initialization for borken and port
 		self.broker=''
 		self.port= 0 
 
-	def start(self):
+	def start(self): #start client and subscribes to topics
 		self.client.start() 
 		self.client.mySubscribe(self.DAtopicS)
 
 	def stop(self):
 		self.client.stop()
 			
-	def notify(self,topic,payload):
-		#It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor
+	def notify(self,topic,payload): #It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor
 
-		#weekly report of average heart rate 
 		payload=json.loads(payload)
-		id=int(topic.split("/")[1])
+		id=int(topic.split("/")[1]) #patient ID
+		
 		#search the patient in the list created with the catalog communication
 		for i,pat in enumerate(self.list_dict): 
 			if id==pat["patientID"]:
-				pos=i
+				pos=i 
+		#weekly report 
 		if topic.split("/")[3]=="weekly":
+			#weekly report of average heart rate 
 			bodyHR=payload["HeartRate"]
 			print(f'\nHR: {bodyHR}\n')
 			bodyACC=payload["Accelerometer"]
@@ -72,11 +71,11 @@ class DataAnalysis():
 				else:
 					if len(temp)>=5:  #consider at least 5 consecutive samples length activity over threshold
 						#evaluate the activity status:
-						if statistics.mean(temp)<80:
+						if statistics.mean(temp)<80: #low intensity
 							self.list_dict[pos]["Weekly Measurements"]["activity"][0]+=len(temp)
-						elif 80<statistics.mean(temp)<120:
+						elif 80<statistics.mean(temp)<120: #medium intensity
 							self.list_dict[pos]["Weekly Measurements"]["activity"][1]+=len(temp)
-						else:
+						else: #high intensity
 							self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
 						temp=[]	
 					else:
@@ -92,11 +91,11 @@ class DataAnalysis():
 
 			#weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door 
 			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][1]+=len(bodyMOT) #total number of samples
-			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][0] = sum([float(item["value"]) for item in bodyMOT if item["value"]!=None])
+			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][0] = sum([float(item["value"]) for item in bodyMOT if item["value"]!=None]) #None removed
 
 			#the publishing is done after 7 days of analysis - so the observation window are emptied
 			if self.list_dict[pos]["Weekly Measurements"]["day"]==7:
-				self.publish(id,"weekly")
+				self.publish(id,"weekly") #publish statistics to NODE-RED
 				self.list_dict[pos]["Weekly Measurements"]["number"] = [0]*3
 				self.list_dict[pos]["Weekly Measurements"]["mean_value"]=[0]*3
 				self.list_dict[pos]["Weekly Measurements"]["day"]=0
@@ -108,27 +107,31 @@ class DataAnalysis():
 			self.list_dict[pos]["Monthly Measurements"]["panik attack"]+=float(payload["Number of panik attack"])
 			#the publishing is done after 30 days of analysis
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
-				self.publish(id,"monthly")
+				self.publish(id,"monthly") #publish to NODE-RED
 				self.list_dict[pos]["Monthly Measurements"]["day"]=0			
 
 	def publish(self,id,command):
 		i= [int(pos) for pos,pat in enumerate(self.list_dict) if id==pat["patientID"]][0] #it is unique - search of the position of the patient in the list
 		topic=self.DATtopicP_base+str(id)+"/nodered"
 		print(topic)
-		if command=='weekly':
+		if command=='weekly': #weekly report
+			#activity report of the patient
 			activity=self.list_dict[i]["Weekly Measurements"]["activity"]
 			print(f'Activity vector: {activity}')
 			try :
 				x =[a/sum(activity)*100 for a in activity]
 			except:
 				x = [0,0,0]
+			
+			#weekly report of average heart rate 
 			y = []
 			for n,m in zip(self.list_dict[i]["Weekly Measurements"]["number"],self.list_dict[i]["Weekly Measurements"]["mean_value"]):
 				try :
 					y.append(m/n)
 				except:
 					y.append(0)
-					
+			
+			#weekly report of how long the person has been in the bedroom
 			bed=self.list_dict[i]["Weekly Measurements"]["bedroomstatus"]
 			bed_output = bed[0]/bed[1]
 			payload={"patientID":id,
@@ -141,7 +144,7 @@ class DataAnalysis():
 			self.client.myPublish(topic, payload) 
 
 
-		elif command=='monthly':
+		elif command=='monthly': #monthly report
 			payload2={"patientID":id,
 			"Panik Attack": self.list_dict[i]["Monthly Measurements"]["panik attack"]
 			}
@@ -149,19 +152,17 @@ class DataAnalysis():
 			
 
 	
-	def CatalogCommunication(self):
-		#with the catalog, for retriving information
+	def CatalogCommunication(self): #retrieve broker/port 
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
-			print('if CatalogCommunication')
-			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
-				self.broker = r.json()["IPaddress"]
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker is changed...
+				self.broker = r.json()["IPaddress"] #... update broker and port
 				self.port = r.json()["port"]
-				self.client.stop()
-				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+				self.client.stop() #stop the previous client and 
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self) #create and start new client
 				self.start()	
-		else:
-			print('else CatalogCommunication')
+				
+		else: #create and start new client
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
@@ -170,10 +171,10 @@ class DataAnalysis():
 		#Retriving information about ThingSpeak API keys
 		r=requests.get(self.CATALOG_URL+f"/patients") 
 		body2=r.json() #lista di dizionari
-		patient_ID_list=[identifier["patientID"] for identifier in self.list_dict]
+		patient_ID_list=[identifier["patientID"] for identifier in self.list_dict] #list of patient ID already retrieved and present in self.dict
 		
 		for item in body2:
-			if not int(item["patientID"]) in patient_ID_list: #if patient not in list_dict...
+			if not int(item["patientID"]) in patient_ID_list: #if the patient ID is not present in self.dict, it's added
 				
 				patient={"patientID":int(item["patientID"]),
 					"PatientInfo":{
@@ -191,7 +192,8 @@ class DataAnalysis():
 						"panik attack":0
 						}
 					}	
-				self.list_dict.append(patient) #... add patient
+				self.list_dict.append(patient) 
+				
 			else: #if patient already in list_dict...
 				for patient in self.list_dict:
 					if patient["patientID"]==item["patientID"]:
@@ -199,6 +201,7 @@ class DataAnalysis():
 						patient["PatientInfo"]["channel"]=item["channel"]		
 						
 if __name__=="__main__":
+	#sys.argv[1] is Configuration_file.json
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
