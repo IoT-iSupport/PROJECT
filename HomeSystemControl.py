@@ -18,6 +18,8 @@ class HomeSystemControl():
 		self.clientID=clientID
 		self.timeslot = timeslot
 		self.endTopic = endTopic
+		
+		#initialization for broker and port
 		self.broker=''
 		self.port=0
 
@@ -27,7 +29,7 @@ class HomeSystemControl():
 			topic=f'{self.baseTopic}+/sensors/'+t
 			self.client.mySubscribe(topic)
 
-	def notify(self,topic,payload):
+	def notify(self,topic,payload): # It receives data from sensors
 		payload=json.loads(payload)
 		topic=topic.split('/')
 		id=topic[1] #patientID
@@ -112,13 +114,13 @@ class HomeSystemControl():
 		r=requests.get(self.CATALOG_URL+f'/broker') 
 		if self.broker and self.port:
 			
-			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #if the broker is changed
-				self.broker = r.json()["IPaddress"]
+			if not self.broker == r.json()["IPaddress"] or not self.port == r.json()["port"]: #check if the broker is changed...
+				self.broker = r.json()["IPaddress"] #... update broker and port
 				self.port = r.json()["port"]
-				self.client.stop()
-				self.client=MyMQTT(self.clientID,self.broker,self.port,self)
+				self.client.stop() #stop the previous client and 
+				self.client=MyMQTT(self.clientID,self.broker,self.port,self) #create and start new client
 				self.start()	
-		else:
+		else: #create and start new client
 			
 			self.broker = r.json()["IPaddress"]
 			self.port = r.json()["port"]
@@ -128,14 +130,15 @@ class HomeSystemControl():
 		#patients information
 		r=requests.get(self.CATALOG_URL+f'/patients') 
 		body2=r.json() #lista di dizionari
-		patient_ID_list=[ID["patientID"] for ID in self.dict]
+		patient_ID_list=[ID["patientID"] for ID in self.dict] #list of patient ID already retrieved and present in self.dict
 		for item in body2:
-			if not item["patientID"] in patient_ID_list:
+			if not item["patientID"] in patient_ID_list: #if the patient ID is not present in self.dict, it's added
 				new_patient={"patientID":item["patientID"],"Temperature":[],"Humidity":[],"Motion":[],"status":0}
 				self.dict.append(new_patient)
 
 
 if __name__=="__main__":
+	#sys.argv[1] is Configuration_file.json
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
@@ -151,7 +154,7 @@ if __name__=="__main__":
 	while True:
 		
 		if time.time()-tic>=60*10:
-			#every 5 minutes the Home enviroment is controlled 
+			#every 10 minutes CatalogCommunication is done and the Home enviroment is controlled 
 			HSControl.CatalogCommunication()
 			HSControl.controlStrategy()
 			tic=time.time()
