@@ -5,7 +5,7 @@ from datetime import datetime
 import sys
 import time
 
-#It is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer). 
+# It is an MQTT subscriber that receives patient measurements and upload them on Thinkspeak through REST Web Services (consumer) and as an MQTT subscriber that receives if a panick attack has occurred from Patient Control. 
 # It works as a MQTT publisher for sending data from storage (ThingSpeak) to the “Data Analysis”. 
 
 
@@ -74,10 +74,10 @@ class ThingSpeakGateway():
 			f=1 #haert rate
 			field=f"field{f}"
 			url=f'{self.ReadBaseUrl}{self.channels[i]}/fields/{f}.json?api_key={self.apikeysR[0]}&days=1' 
-			r=requests.get(url) #retrive one day data
+			r=requests.get(url) #retrieve one day data
 			body=r.json()
 			payload_HR=[]
-			if body!=-1: #if some HR measurments are present 
+			if body!=-1: #if HR measurments are retrieved correcly 
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
@@ -89,7 +89,7 @@ class ThingSpeakGateway():
 			r=requests.get(url) #retrive one day data
 			body=r.json()
 			payload_ACC=[]
-			if body!=-1:
+			if body!=-1: #if accelerometer measurments are retrieved correcly 
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
@@ -101,7 +101,7 @@ class ThingSpeakGateway():
 			r=requests.get(url) #retrive one day data
 			body=r.json()
 			payload_MOT=[]
-			if body!=-1:
+			if body!=-1: #if motion measurments are retrieved correcly 
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
@@ -113,7 +113,7 @@ class ThingSpeakGateway():
 			r=requests.get(url) #retrive one day data
 			body=r.json()
 			payload_TEM=[]
-			if body!=-1:
+			if body!=-1: #if temperature measurments are retrieved correcly 
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
@@ -125,7 +125,7 @@ class ThingSpeakGateway():
 			r=requests.get(url) #retrive one day data
 			body=r.json()
 			payload_HUM=[]
-			if body!=-1:
+			if body!=-1: #if humidity measurments are retrieved correcly 
 				for measure in range(len(body["feeds"])):
 					if body["feeds"][measure][field]: # None are removed
 						feed={"date":body["feeds"][measure]["created_at"],"value":body["feeds"][measure][field]}
@@ -142,7 +142,7 @@ class ThingSpeakGateway():
 			r=requests.get(url) #retrive one day data
 			body=r.json()
 			numberPA=0
-			if body!=-1:
+			if body!=-1: #if number of panic attack are retrieved correcly 
 				for measure in range(len(body["feeds"])): 
 					if body["feeds"][measure][field]: # None are removed
 						numberPA+=1
@@ -206,11 +206,11 @@ if __name__=="__main__":
 	while True:
 		today= datetime.now()
 		if today.hour==12 and flag: #Monday condition. It has to enter in the condition once a day
-			gateway.publish() # once a day it retrieves data from ThingSpeak and publishes them to Data Analysis
+			gateway.publish() # once a day it receives data from ThingSpeak and publishes them to Data Analysis
 			flag=False
 		elif today.hour==0: #Next day the flag is restored to True
 			flag=True
 		elif today.minute-prev.minute>2:
-			gateway.CatalogCommunication()  #and retrieves broker/port and patient information
+			gateway.CatalogCommunication()  #every 2 minutes broker/port and patient information are retrieved
 			prev = today
 	get.stop()
