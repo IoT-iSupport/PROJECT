@@ -79,9 +79,13 @@ class Catalog():
 		uri=list(uri)
 		if not len(uri):
 			raise cherrypy.HTTPError(400,"Bad Request")
-		else:
+		else: #Update the information of a patient
 			if uri[0]=='patient':
-				pass
+				for item in self.patients:
+					if item['patientID']==json_body["patientID"]:
+						for k in json_body: # update device information 
+							item[k]=json_body[k]
+						item["lastUpdate"]=time.time()
 			#Update the information of a device
 			elif uri[0]=='device':
 				for item in self.devices:
@@ -129,7 +133,6 @@ if __name__ == "__main__":
 	cherrypy.engine.start()
 	while True:
 		try:
-			#while True:
 			#checking the connection of the device in the list
 			c.aliveChecker()
 			time.sleep(60)
