@@ -138,12 +138,13 @@ class MQTTbot:
 		patient_ID_list=[ID["patientID"] for ID in self.dict] #list of patient ID already retreived and present in self.dict
 		for item in body2:
 			if not item["patientID"] in patient_ID_list: #if the patient ID is not present in self.dict, it is added
-				new_patient={"patientID":item["patientID"],"chatID":item["telegramIDs"],"channel": item["channel"],"apikey":item["apikey"][1]} #status: 0 off, status: 1 on
+				new_patient={"patientID":item["patientID"],"chatID":item["telegramIDs"],"channel": item["channel"]} 
 				self.dict.append(new_patient)
 			else: #if patient already in list_dict...
 				for patient in self.dict:
 					if patient["patientID"]==item["patientID"]:
-						patient["chatID"]=item["telegramIDs"] #... chatIDs are updated
+						patient["chatID"]=item["telegramIDs"] #... chatIDs, channelID are updated
+						patient["channel"]=item["channel"]
 
 
 if __name__ == "__main__":
