@@ -38,7 +38,7 @@ class Catalog():
 					item={"patientID":p["patientID"],"apikey":[i for i in p["thingspeakInfo"]["apikeys"]],"channel":p["thingspeakInfo"]["channel"],"LightsSchedule":p["LightsSchedule"],"telegramIDs":p["telegramIDs"]}
 					output.append(item)
 				return json.dumps(output,indent=4)
-			#It is used by DeviceConnector.py for retriving the registered devices
+			#It is used by DeviceConnectors for retriving the registered devices
 			elif uri[0]=='deviceID':
 				id=uri[1]
 				for item in self.devices:
