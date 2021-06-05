@@ -31,7 +31,7 @@ class Catalog():
 			#Retrieve all the registered devices
 			elif uri[0]=='devices':
 				return json.dumps(self.devices,indent=4)
-			#Retrieve all the registered users with their thingspeak apikeys and channel and the light Schedule
+			#Retrieve all the registered users with their thingspeak apikeys and channel, the light Schedule and telegram chat IDs
 			elif uri[0]=='patients':
 				output=[]
 				for p in self.patients:
