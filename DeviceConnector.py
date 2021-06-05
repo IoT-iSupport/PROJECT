@@ -76,7 +76,7 @@ class DeviceConnector():
 			self.client=MyMQTT(self.clientID,self.broker,self.port,self)
 			self.start()
 
-	def start(self):
+	def start(self): #start client and subsribe to topics
 		self.client.start()
 		for topic in self.t.values():
 			self.client.mySubscribe(topic)
@@ -85,9 +85,10 @@ class DeviceConnector():
 		self.client.stop()
 
 	def publish(self,range_hr,flag_temp,flag_motion): 
+		#range_hr= is a letter r(=rest)/d(=danger)/s(=sport) for HR measurements
+		#flag_temp = is a boolean for temp and hum out of comfort-home-status, ranges 1 = in range value, 0=out of range value
 		#flag_motion=is a boolean that stands for 1= Presence or 0=Not presence
-		#range_hr: is a letter r(=rest)/d(=danger)/s(=sport) for HR measurements
-		#flag_temp = is a boolean for temp e hum out of comfort-home-status ranges 1 = in range value, 0=out of range value
+		
 		for d in self.connected_devices["Sensors"]:
 			print('\n')	
 			topic=d["servicesDetails"][0]["topic"]
@@ -134,7 +135,7 @@ class DeviceConnector():
 				if range_hr=='r': #rest
 					loc, scale = 60, 1
 					a= np.random.logistic(loc, scale) 
-				elif range_hr=='d' or range_hr=='s': #danger o sport
+				elif range_hr=='d' or range_hr=='s': #danger/panic attack o sport
 					shape, scale = 5., 10. 
 					a = np.random.gamma(shape, scale)+110
 				
@@ -207,7 +208,7 @@ if __name__=="__main__":
 		dc.RESTCommunication(sys.argv[2])
 		try:
 			while True:
-				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperature(0/1=in/out of range), 2: motion sensor (1/0=on/off) 
+				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperature(1/0=in/out of range), 2: motion sensor (1/0=on/off) 
 				if i==2: #every 120s register devices or refresh registration and retrieve broker/port
 					dc.RESTCommunication(sys.argv[2])
 					dc.MQTTinfoRequest()
