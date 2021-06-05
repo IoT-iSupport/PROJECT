@@ -53,17 +53,17 @@ class PatientControl():
 					
 					if median(patient["windowHR"]) > 1.5*patient['lastHR']: #if current HR increases more than 50% of the previous HR
 						print('Condizione HR fatta')
-						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']): #if current acceleromenter measures do not increases more than more than twice the previous values
+						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']): #if current acceleromenter measures do not increases more than twice the previous values
 							print('Condizione ACC fatta: EMERGENCY ALERT!')
 							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panic attack event
 							print(url)
 							msg={"patientID":patient["patientID"],"alertStatus":1}
 							topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
 	
-							self.client.myPublish(topicTelegram,msg)
+							self.client.myPublish(topicTelegram,msg) # publish panic attack to telegram bot
 							sleep_msg ={'msg':'sleep'}
-							topicTS = self.baseTopic+str(patient["patientID"])+'/PA'
-							self.client.myPublish(topicTS,sleep_msg)
+							topicTS = self.baseTopic+str(patient["patientID"])+'/PA' # publish panic attack to thingspeak adaptor
+							self.client.myPublish(topicTS,sleep_msg) 
 							time.sleep(15)
 							r=requests.get(url) #ThingSpeak request to store panic attack event
 							
