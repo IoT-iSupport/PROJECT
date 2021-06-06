@@ -1,6 +1,7 @@
 import json
 import time
 import cherrypy
+import sys
 
 class Catalog():
 	exposed=True
@@ -15,22 +16,17 @@ class Catalog():
 		self.patients=body['patientList']
 		fp.close()
 		
-		self.aliveChecker()
-		
 	def GET(self,*uri):
 		uri=list(uri)
 		if not len(uri):
 			raise cherrypy.HTTPError(400,"Bad Request")
-		else:
+		else: 
 			#Retrieve IP address and port of the message broker
 			if uri[0]=='broker':
 				return json.dumps(self.broker,indent=4)
 			#Retrieve telegram token
 			elif uri[0]=='token':
 				return json.dumps(self.telegramToken,indent=4)
-			#Retrieve all the registered devices
-			elif uri[0]=='devices':
-				return json.dumps(self.devices,indent=4)
 			#Retrieve all the registered users with their thingspeak apikeys and channel, the light Schedule and telegram chat IDs
 			elif uri[0]=='patients':
 				output=[]
@@ -38,6 +34,9 @@ class Catalog():
 					item={"patientID":p["patientID"],"apikey":[i for i in p["thingspeakInfo"]["apikeys"]],"channel":p["thingspeakInfo"]["channel"],"LightsSchedule":p["LightsSchedule"],"telegramIDs":p["telegramIDs"]}
 					output.append(item)
 				return json.dumps(output,indent=4)
+			#Retrieve all the registered devices
+			elif uri[0]=='devices':
+				return json.dumps(self.devices,indent=4)
 			#It is used by DeviceConnectors for retriving the registered devices
 			elif uri[0]=='deviceID':
 				id=uri[1]
@@ -52,13 +51,13 @@ class Catalog():
 		json_body = json.loads(cherrypy.request.body.read())
 		if not len(uri):
 			raise cherrypy.HTTPError(400,"Bad Request")
-		else:
+		else: #
 			#Add a new device
 			if uri[0]=='device':
 				json_body["lastUpdate"]=time.time()
 				self.devices.append(json_body)
 				self.save()
-				print(f'\nAdded deviceID: {json_body["deviceID"]}')
+				#print(f'\nAdded deviceID: {json_body["deviceID"]}')
 			#Add a new user
 			elif uri[0]=='patient':
 				json_body["lastUpdate"]=time.time()
@@ -71,7 +70,7 @@ class Catalog():
 						patient["telegramIDs"].append(json_body["chatID"])
 						self.save()
 			else:
-				raise cherrypy.HTTPError(404,"Not Found")
+				raise cherrypy.HTTPError(400,"Bad Request")
 			
 
 	def PUT(self,*uri): #hp: information to be updated are in the PUT body with the ID
@@ -86,6 +85,8 @@ class Catalog():
 						for k in json_body: # update device information 
 							item[k]=json_body[k]
 						item["lastUpdate"]=time.time()
+						#print(f'\nUpdated registration of patinetID: {json_body["patientID"]}')
+				self.save() 
 			#Update the information of a device
 			elif uri[0]=='device':
 				for item in self.devices:
@@ -93,9 +94,10 @@ class Catalog():
 						for k in json_body: # update device information 
 							item[k]=json_body[k]
 						item["lastUpdate"]=time.time() # always update "lastUpdate"
+						#print(f'\nUpdated registration of deviceID: {json_body["deviceID"]}')
 				self.save()        
 			else:
-				raise cherrypy.HTTPError(404,"Not Found")
+				raise cherrypy.HTTPError(400,"Bad Request")
 		
 	def save(self): #It saves all information in Catalog.json
 		data={"broker":self.broker,
@@ -111,7 +113,6 @@ class Catalog():
 		if not self.devices==[]:
 			ind=[]
 			for i,device in list(enumerate(self.devices)):
-				#print(f'Device: {device["deviceName"]}, i: {i}, diff: {time.time()-device["lastUpdate"]}')
 				if time.time()>device["lastUpdate"]+120:
 					print(f'Removed deviceID: {device["deviceID"]}')
 					ind.append(i) #append all the indexes of the devices to be removed
@@ -121,7 +122,9 @@ class Catalog():
 			self.save()
 
 if __name__ == "__main__":
-	c=Catalog("Catalog.json")
+	#sys.argv[1] is Catalog.json
+	filename = sys.argv[1]
+	c=Catalog(filename)
 	#Standard configuration to serve the url "localhost:8080"
 	conf={
 		'/':{
