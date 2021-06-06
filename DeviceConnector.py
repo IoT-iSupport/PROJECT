@@ -14,7 +14,6 @@ class DeviceConnector():
 		self.patient = patient
 		self.clientID = clientID
 		self.CATALOG_URL = CATALOG_URL
-		#self.baseTopicS=f"{baseTopic}{patient}/actuators"
 		
 		#initialisation for broker and port
 		self.broker=''
