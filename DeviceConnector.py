@@ -21,7 +21,6 @@ class DeviceConnector():
 		self.port=0
 		#message structure
 		self.__message={
-			'patientID':self.patient, 
 			'bn':'',
 			'e':
 				[
