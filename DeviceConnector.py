@@ -14,7 +14,7 @@ class DeviceConnector():
 		self.patient = patient
 		self.clientID = clientID
 		self.CATALOG_URL = CATALOG_URL
-		self.baseTopicS=f"{baseTopic}{patient}/actuators"
+		#self.baseTopicS=f"{baseTopic}{patient}/actuators"
 		
 		#initialisation for broker and port
 		self.broker=''
@@ -52,11 +52,11 @@ class DeviceConnector():
 			if r.text=='':
 				#new Registration
 				requests.post(self.CATALOG_URL+f'/device',json=device)
-				print(f'Registered DeviceID: {device["deviceID"]}')
+				#print(f'Registered DeviceID: {device["deviceID"]}')
 			else:
 				#refresh Devices reistration
 				requests.put(self.CATALOG_URL+f'/device',json=device)
-				print(f'Updated registration of DeviceID: {device["deviceID"]}')
+				#print(f'Updated registration of DeviceID: {device["deviceID"]}')
 
 	def MQTTinfoRequest(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
@@ -171,12 +171,12 @@ class DeviceConnector():
 		if topic.split('/')[3] == 'Light':
 			#relays command (Lights)
 			self.status_light=payload["e"][0]["value"]
-			print(f'\nlight status of light_{topic.split("/")[1]} set to {self.status_light}')
+			#print(f'\nlight status of light_{topic.split("/")[1]} set to {self.status_light}')
 		elif topic.split('/')[3] == 'Air':
 			self.status_airC==payload["AirConditionairStatus"]			
 
 if __name__=="__main__":
-	#sys.argv[1] is CONNECTTED_DEVICE.JSON
+	#sys.argv[1] is Configuration_file.json
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
@@ -195,7 +195,7 @@ if __name__=="__main__":
 	fp.close()
 
 	dc=DeviceConnector(CATALOG_URL,clientID,patientID,bT,linesREST,linesSPORT)
-	#sys.argv[2] is Configuration_file.json
+	#sys.argv[2] is  CONNECTTED_DEVICE.JSON 
 	dc.RESTCommunication(sys.argv[2])
 	dc.MQTTinfoRequest()
 	   
@@ -215,3 +215,4 @@ if __name__=="__main__":
 		except KeyboardInterrupt: #CRTL+C for changing status 
 			continue
 	dc.stop()
+
