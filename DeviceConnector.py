@@ -28,7 +28,6 @@ class DeviceConnector():
 					{'n':'','value':'', 'timestamp':'','u':''},
 					]
 			}
-		self.previous_hr=60 #inizilizzazione per la heart rate "rest"
 		self.status_airC=0 #for airConditionair_1 0 off, 1 on
 		self.status_light=0 #for the lights 0 off, 1 on
 
