@@ -74,17 +74,17 @@ class MQTTbot:
 			if query_data[0]=='daily':
 				for patient in self.dict:
 					if patient["patientID"]==query_data[1]:
-						url=f'{self.ReadBaseUrl}{patient["channel"]}/charts/1?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&type=line' 
-						url2=f'{self.ReadBaseUrl}{patient["channel"]}/charts/2?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&type=line' 
-						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&type=line' 
+						url=f'{self.ReadBaseUrl}{patient["channel"]}/charts/1?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&title=Heart+Rate+Data&type=line' 
+						url2=f'{self.ReadBaseUrl}{patient["channel"]}/charts/2?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&title=Accelerometer+Data&type=line&yaxis=Acceleration+%5Bm%2Fs2%5D&yaxismax=15&yaxismin=-2' 
+						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&title=Panic+Attack+Events&type=line"
 						self.bot.sendMessage(chat_ID,text=f"<a href='{url}'>Heart Rate</a>\n<a href='{url2}'>Accelerometer</a>\n<a href='{url3}'>Panik Attack</a>",parse_mode='HTML',disable_web_page_preview = False) #links of charts on thinspeak are shown 
 
 			elif query_data[0] == 'month':
 				for patient in self.dict:
 					if patient["patientID"]==query_data[1]:
-						url=f'{self.ReadBaseUrl}{patient["channel"]}/charts/1?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&type=line' 
-						url2=f'{self.ReadBaseUrl}{patient["channel"]}/charts/2?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&type=line' 
-						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&type=line' 
+						url=f'{self.ReadBaseUrl}{patient["channel"]}/charts/1?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Heart+Rate+Data&type=line' 
+						url2=f'{self.ReadBaseUrl}{patient["channel"]}/charts/2?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Accelerometer+Data&type=line&yaxis=Acceleration+%5Bm%2Fs2%5D&yaxismax=15&yaxismin=-2' 
+						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Panic+Attack+Events&type=line"
 						self.bot.sendMessage(chat_ID,text=f"<a href='{url}'>Heart Rate</a>\n<a href='{url2}'>Accelerometer</a>\n<a href='{url3}'>Panik Attack</a>",parse_mode='HTML',disable_web_page_preview = False) #links of charts on thinspeak are shown
 
 			
