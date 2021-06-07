@@ -5,10 +5,11 @@ from datetime import datetime
 import sys
 
 class LightShift():
-	def __init__(self,CATALOG_URL,bT,clientID):
+	def __init__(self,CATALOG_URL,bT,endTopic,clientID):
 		self.dict=[] 
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = bT
+		self.endTopic = endTopic
 		self.clientID=clientID
 
 		#initialisation for broker and port
@@ -20,7 +21,7 @@ class LightShift():
 	
 	def controlStrategy(self): #it checks if it's time to switch on/off the lights
 		for patient in self.dict:
-			topic=f'{self.baseTopic}{patient["patientID"]}/actuators/Light'
+			topic=f'{self.baseTopic}{patient["patientID"]}{self.endTopic}'
 			times=patient["time"].split('-') # structure of LightsSchedule "7:00-7:30"
 			now=datetime.today().time() #current time
 			t1=datetime.strptime(times[0],"%H:%M").time() #time to switch on the lights 
@@ -83,12 +84,16 @@ if __name__=="__main__":
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"]
-	clientID=conf["LightShift"]["clientID"] 
+	clientID=conf["LightShift"]["clientID"]
+	endTopic=conf["LightShift"]["endTopic"] 
 	fp.close()
 
-	LS=LightShift(CATALOG_URL,bT,clientID)	
+	LS=LightShift(CATALOG_URL,bT,endTopic,clientID)	
 	while True:
 		#every 60s broker/port and patient "LightsSchedule" are  retrieved and control strategy is performed to check if it's time to switch on/off lights
-		LS.CatalogCommunication()
+		try:
+			LS.CatalogCommunication()
+		except:
+			print('Catalog Communication failed')
 		LS.controlStrategy()
 		time.sleep(60)

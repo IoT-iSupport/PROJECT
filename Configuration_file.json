@@ -14,7 +14,8 @@
         {   
             "clientID":"HomeSystemControlMS",
             "TimeSlot" : ["7:00","23:00"],
-            "endTopic":["Air","Motion"]
+            "endTopicS":["Air","Motion"],
+            "endTopicP":"actuators/Air"
         },
     
     "ThingSpeakAdaptor":{
@@ -27,7 +28,8 @@
         "endTopic" : "/nodered"
     },
     "LightShift":{
-        "clientID":"LigthShiftMS"
+        "clientID":"LigthShiftMS",
+        "endTopic":"actuators/Light"
     },
     
     "TelegramBot": {

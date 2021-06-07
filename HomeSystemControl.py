@@ -11,13 +11,14 @@ from myMQTT import *
 import sys
 
 class HomeSystemControl():
-	def __init__(self,CATALOG_URL,bt,clientID,timeslot,endTopic):
+	def __init__(self,CATALOG_URL,bt,clientID,timeslot,endTopicS,endTopicP):
 		self.dict=[] # list of patient
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = bt
+		self.endTopicP = endTopicP
 		self.clientID=clientID
 		self.timeslot = timeslot
-		self.endTopic = endTopic
+		self.endTopicS = endTopicS
 		
 		#initialization for broker and port
 		self.broker=''
@@ -25,7 +26,7 @@ class HomeSystemControl():
 
 	def start(self):
 		self.client.start()
-		for t in self.endTopic:
+		for t in self.endTopicS:
 			topic=f'{self.baseTopic}+/sensors/'+t
 			self.client.mySubscribe(topic)
 
@@ -37,17 +38,17 @@ class HomeSystemControl():
 		for patient in self.dict:
 			if patient["patientID"]==id:
 				
-				if topic[3]==self.endTopic[0]:
+				if topic[3]==self.endTopicS[0]:
 					patient["Temperature"].append(float(payload["e"][0]["value"]))
 					patient["Humidity"].append(float(payload["e"][1]["value"]))
 					
-				elif topic[3]==self.endTopic[1]:
+				elif topic[3]==self.endTopicS[1]:
 					patient["Motion"].append(int(payload["e"][0]["value"]))
 
 	def controlStrategy(self):
 		for patient in self.dict:
 			print(f'Controlling home enviroment\tPatient ID: {patient["patientID"]}...')
-			topicP=f'{self.baseTopic}{patient["patientID"]}/actuators/Air'
+			topicP=f'{self.baseTopic}{patient["patientID"]}/{self.endTopicP}'
 			while len(patient["Motion"])>15:
 				patient["Motion"].pop(0)
 			
@@ -155,10 +156,10 @@ if __name__=="__main__":
 	bt = conf["baseTopic"] 
 	clientID=conf["HomeSystemControl"]["clientID"]
 	timeslot = conf["HomeSystemControl"]["TimeSlot"]
-	endTopic = conf["HomeSystemControl"]["endTopic"]
+	endTopicS = conf["HomeSystemControl"]["endTopicS"]
 	fp.close()
 
-	HSControl=HomeSystemControl(CATALOG_URL,bt,clientID,timeslot,endTopic)
+	HSControl=HomeSystemControl(CATALOG_URL,bt,clientID,timeslot,endTopicS,endTopicP)
 	HSControl.CatalogCommunication()
 	tic=time.time()
 	while True:
