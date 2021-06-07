@@ -8,7 +8,7 @@ from random import choice
 import sys
 
 class DeviceConnector():
-	def __init__(self,CATALOG_URL,clientID,patient,baseTopic,linesREST,linesSPORT):
+	def __init__(self,CATALOG_URL,clientID,patient,linesREST,linesSPORT):
 		self.linesREST = linesREST
 		self.linesSPORT = linesSPORT
 		self.patient = patient
@@ -179,7 +179,6 @@ if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
-	bT = conf["baseTopic"] 
 	patientID = conf['DeviceConnector']["patientID"]
 	clientID='DeviceConnector'+str(patientID)
 	fp.close()
@@ -193,7 +192,7 @@ if __name__=="__main__":
 	linesSPORT=fp.readlines()
 	fp.close()
 
-	dc=DeviceConnector(CATALOG_URL,clientID,patientID,bT,linesREST,linesSPORT)
+	dc=DeviceConnector(CATALOG_URL,clientID,patientID,linesREST,linesSPORT)
 	#sys.argv[2] is  CONNECTTED_DEVICE.JSON 
 	dc.RESTCommunication(sys.argv[2])
 	dc.MQTTinfoRequest()
