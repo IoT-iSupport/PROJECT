@@ -14,11 +14,9 @@ import sys
 
 class PatientControl():
 	def __init__(self,CATALOG_URL,baseTopic,clientID):
-		#self.endTopic = endTopic
 		self.dict=[] # the windows are filled until the 10*60/60s = 10 samp
 		self.WriteBaseUrl="https://api.thingspeak.com/update?api_key="
 		self.ReadBaseUrl= "https://api.thingspeak.com/channels/"
-		self.jump=0
 		self.CATALOG_URL = CATALOG_URL
 		self.baseTopic = baseTopic
 		self.clientID=clientID
@@ -33,11 +31,11 @@ class PatientControl():
 	def controlStrategy(self): #it checks if a panic attack has occurred 
 		for patient in self.dict:
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/1.json?minutes=10'
-			r=requests.get(url) #retrieve 10 minutes Accelerometer data
+			r=requests.get(url) #retrieve 10 minutes HR data
 			body=r.json()
 			
 			url=f'{self.ReadBaseUrl}{patient["channel"]}/fields/2.json?minutes=10'
-			r=requests.get(url) #retrieve 10 minutes HR data
+			r=requests.get(url) #retrieve 10 minutes Accelerometer data
 			body2=r.json()
 
 			if body!=-1 and body2!=-1: #data retrieved correctly
@@ -53,10 +51,9 @@ class PatientControl():
 					
 					if median(patient["windowHR"]) > 1.5*patient['lastHR']: #if current HR increases more than 50% of the previous HR
 						print('Condizione HR fatta')
-						if not abs(median(patient["windowACC"])) > 2*abs(patient['lastACC']): #if current acceleromenter measures do not increases more than twice the previous values
+						if not abs(median(patient["windowACC"])) > 4*abs(patient['lastACC']): #if current acceleromenter measures do not increases more than twice the previous values
 							print('Condizione ACC fatta: EMERGENCY ALERT!')
 							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panic attack event
-							print(url)
 							msg={"patientID":patient["patientID"],"alertStatus":1}
 							topicTelegram=self.baseTopic+str(patient["patientID"])+'/telegram'
 	
@@ -64,18 +61,18 @@ class PatientControl():
 							sleep_msg ={'msg':'sleep'}
 							topicTS = self.baseTopic+str(patient["patientID"])+'/PA' # publish panic attack to thingspeak adaptor
 							self.client.myPublish(topicTS,sleep_msg) 
-							time.sleep(15)
+							time.sleep(15) #strategy to solve the limitation of the free version of thingspeak that allows to send data every 15 seconds
 							r=requests.get(url) #ThingSpeak request to store panic attack event
 							
 					
 					patient['lastHR']=median(patient["windowHR"])
 					patient['lastACC']=median(patient["windowACC"])
 		
-					print(f'HR current window:\n {patient["windowHR"]}')
-					print(f"HR current median: {patient['lastHR']}")
+					# print(f'HR current window:\n {patient["windowHR"]}')
+					# print(f"HR current median: {patient['lastHR']}")
 					
-					print(f'Acceleration current window:\n {patient["windowACC"]}')
-					print(f"Acceleration current median: {patient['lastACC']}")
+					# print(f'Acceleration current window:\n {patient["windowACC"]}')
+					# print(f"Acceleration current median: {patient['lastACC']}")
 					
 	def CatalogCommunication(self):
 		r=requests.get(self.CATALOG_URL+f'/broker') #retrieve broker/port 
@@ -115,7 +112,6 @@ class PatientControl():
 						patient["apikeyWrite"]=item["apikey"][0] #...apikey and channelID are updated
 						patient["apikeyRead"]=item["apikey"][1]
 						patient["channel"]=item["channel"]	
-			
 
 if __name__=="__main__":
 	#sys.argv[1] is Configuration_file.json				      
@@ -131,9 +127,16 @@ if __name__=="__main__":
 	tic=time.time()
 	while True:
 		if time.time()-tic>=(60*5): #every 5 minutes broker, port, token and patient information are retrieved and control strategy is performed
-			PC.CatalogCommunication()
+			try:
+				PC.CatalogCommunication()
+			except:
+				print('Catalog Communication failed')
 			PC.controlStrategy()
 			tic=time.time()
+	
+	
+	
+
 	
 	
 	
