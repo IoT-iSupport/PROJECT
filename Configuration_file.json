@@ -1,7 +1,6 @@
 
 {
     "Catalog_url":"http://127.0.0.1:8080",
-    "clientID": "",
     "baseTopic":"iSupport/",
     "DeviceConnector":{
         "patientID": 1
@@ -24,7 +23,8 @@
         "Panik Attack topic": "'iSupport/+/PA"
     },
     "DataAnalysis":{
-        "clientID":"DataAnalysisMS"
+        "clientID":"DataAnalysisMS",
+        "endTopic" : "/nodered"
     },
     "LightShift":{
         "clientID":"LigthShiftMS"

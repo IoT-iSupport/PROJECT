@@ -12,9 +12,10 @@ import time
 # It works as an MQTT subscriber that recieves data from ThingSpeak Adaptor and as a MQTT publisher that sends processed data to Node-RED.
 
 class DataAnalysis():
-	def __init__(self,CATALOG_URL,topic_base,clientID):
+	def __init__(self,CATALOG_URL,topic_base,endTopic,clientID):
 		self.CATALOG_URL = CATALOG_URL
 		self.DATtopicP_base = topic_base
+		self.endTopic = endTopic
 		self.DAtopicS = topic_base + '+/statistics/#' #/weekly and /monthly
 		self.clientID=clientID
 		self.list_dict=[]
@@ -45,7 +46,6 @@ class DataAnalysis():
 		if topic.split("/")[3]=="weekly":
 			#weekly report of average heart rate 
 			bodyHR=payload["HeartRate"]
-			print(f'\nHR: {bodyHR}\n')
 			bodyACC=payload["Accelerometer"]
 			bodyMOT=payload["Motion"]
 			self.list_dict[pos]["Weekly Measurements"]["day"] += 1 
@@ -55,13 +55,13 @@ class DataAnalysis():
 				if int(date[0])<=8: 
 					#summing all the measureament (the division for obtaining the mean value is done before publishing )
 					self.list_dict[pos]["Weekly Measurements"]["number"][0] += 1
-					self.list_dict[pos]["Weekly Measurements"]["mean_value"][0]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][0]+float(feed["value"])
+					self.list_dict[pos]["Weekly Measurements"]["mean_value"][0] +=float(feed["value"])
 				elif int(date[0])<=19:
 					self.list_dict[pos]["Weekly Measurements"]["number"][1] += 1
-					self.list_dict[pos]["Weekly Measurements"]["mean_value"][1]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][1]+float(feed["value"])
+					self.list_dict[pos]["Weekly Measurements"]["mean_value"][1] += float(feed["value"])
 				else: #int(date[0])<24:
 					self.list_dict[pos]["Weekly Measurements"]["number"][2] += 1
-					self.list_dict[pos]["Weekly Measurements"]["mean_value"][2]=self.list_dict[pos]["Weekly Measurements"]["mean_value"][2]+float(feed["value"])
+					self.list_dict[pos]["Weekly Measurements"]["mean_value"][2] += float(feed["value"])
 			
 			#activity report of the patient
 			temp = []
@@ -90,7 +90,7 @@ class DataAnalysis():
 						self.list_dict[pos]["Weekly Measurements"]["activity"][2]+=len(temp)
 
 			#weekly report of how long the person has been in the bedroom, using data from a motion sensor on the bedroom’s door 
-			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][1]+=len(bodyMOT) #total number of samples
+			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][1] += len([float(item["value"]) for item in bodyMOT if item["value"]!=None]) #total number of samples
 			self.list_dict[pos]["Weekly Measurements"]["bedroomstatus"][0] = sum([float(item["value"]) for item in bodyMOT if item["value"]!=None]) #None removed
 
 			#the publishing is done after 7 days of analysis - so the observation window are emptied
@@ -104,7 +104,7 @@ class DataAnalysis():
 
 		else: #recurrence of panic attacks 
 			self.list_dict[pos]["Monthly Measurements"]["day"]+=1
-			self.list_dict[pos]["Monthly Measurements"]["panik attack"]+=float(payload["Number of panik attack"])
+			self.list_dict[pos]["Monthly Measurements"]["panik attack"] += float(payload["Number of panik attack"])
 			#the publishing is done after 30 days of analysis
 			if self.list_dict[pos]["Monthly Measurements"]["day"]==30:
 				self.publish(id,"monthly") #publish to NODE-RED
@@ -112,14 +112,12 @@ class DataAnalysis():
 
 	def publish(self,id,command):
 		i= [int(pos) for pos,pat in enumerate(self.list_dict) if id==pat["patientID"]][0] #it is unique - search of the position of the patient in the list
-		topic=self.DATtopicP_base+str(id)+"/nodered"
-		print(topic)
+		topic=self.DATtopicP_base+str(id)+self.endTopic
 		if command=='weekly': #weekly report
 			#activity report of the patient
-			activity=self.list_dict[i]["Weekly Measurements"]["activity"]
-			print(f'Activity vector: {activity}')
+			activity = self.list_dict[i]["Weekly Measurements"]["activity"]
 			try :
-				x =[a/sum(activity)*100 for a in activity]
+				x =[a/sum(activity)*100 for a in activity] #for avoiding error due to zero division
 			except:
 				x = [0,0,0]
 			
@@ -127,7 +125,7 @@ class DataAnalysis():
 			y = []
 			for n,m in zip(self.list_dict[i]["Weekly Measurements"]["number"],self.list_dict[i]["Weekly Measurements"]["mean_value"]):
 				try :
-					y.append(m/n)
+					y.append(m/n) #for avoiding error due to zero division
 				except:
 					y.append(0)
 			
@@ -206,11 +204,15 @@ if __name__=="__main__":
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
 	bT = conf["baseTopic"] 
+	endTopic=conf["DataAnalysis"]["endTopic"]
 	clientID=conf["DataAnalysis"]["clientID"]
 	fp.close()
 
-	D=DataAnalysis(CATALOG_URL,bT,clientID)
+	D=DataAnalysis(CATALOG_URL,bT,endTopic,clientID)
 	
 	while True:
-		D.CatalogCommunication()
+		try:
+			D.CatalogCommunication()
+		except:
+			print('Catalog Communication Failed')
 		time.sleep(120) #the Catalog communication is done every two minutes 
