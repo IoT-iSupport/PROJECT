@@ -6,7 +6,6 @@ from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardButton, InlineKeyboardMarkup
 import sys
 from myMQTT import *
-import urllib.request
 
 class MQTTbot:
 	def __init__(self,CATALOG_URL,baseTopic,endTopic,clientID):
@@ -19,8 +18,8 @@ class MQTTbot:
 		
 		#initialization for token, broker and port
 		self.token=0
-		self.broker=''
-		self.port=0
+		self.broker ,self.port = '',0
+		
 		
 		#message structure
 		self.__message={"alert":"is having a Panik attack","action":"check the situation"}
@@ -35,6 +34,7 @@ class MQTTbot:
 		elif message.isdigit(): # if the incoming message is the patientID
 			for patient in self.dict:
 				if int(patient["patientID"])==int(message):
+					flag=1 #patient found
 					for item in patient["chatID"]:
 						if item == chat_ID: #check if the chatID is already linked to the patient in the Catalog
 							self.bot.sendMessage(chat_ID, text=f"Patient {message} ALREADY connected with your bot.")	
@@ -48,11 +48,11 @@ class MQTTbot:
 							self.bot.sendMessage(chat_ID, text=f"Patient {message} connected with your bot.")
 							flag1 = 1
 					
-					flag=1
 			if flag == 0 or flag1 == 0: #if the patientID was not found or if patientID was found but post request does not succeed  
 				self.bot.sendMessage(chat_ID, text="No Patient found, retry\nEnter the patientID:")
 
 		elif message == "/status": #commad to visualise HR, acclerometer measurments and number of panic attack
+			# for showing thingspeak charts to the users
 			buttons=[] 
 			for patient in self.dict:
 				if chat_ID in patient["chatID"]:
@@ -66,7 +66,7 @@ class MQTTbot:
 	def on_callback_query(self,msg):
 		query_ID , chat_ID , query_data = telepot.glance(msg,flavor='callback_query') 
 		if query_data.isdigit(): #if patientID is chosen 
-			buttons=[[InlineKeyboardButton(text=f'Daily',callback_data=f'daily {query_data}')],[InlineKeyboardButton(text=f'Month',callback_data=f'month {query_data}')]]
+			buttons=[[InlineKeyboardButton(text=f'Daily',callback_data=f'daily {query_data}')],[InlineKeyboardButton(text=f'Monthly',callback_data=f'month {query_data}')]]
 			keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 			self.bot.sendMessage(chat_ID, text='Choose time', reply_markup=keyboard) #"daily" and "month" button are displayed 
 		else: #if daily or month are clicked 
@@ -76,7 +76,7 @@ class MQTTbot:
 					if patient["patientID"]==query_data[1]:
 						url=f'{self.ReadBaseUrl}{patient["channel"]}/charts/1?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&title=Heart+Rate+Data&type=line' 
 						url2=f'{self.ReadBaseUrl}{patient["channel"]}/charts/2?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&title=Accelerometer+Data&type=line&yaxis=Acceleration+%5Bm%2Fs2%5D&yaxismax=15&yaxismin=-2' 
-						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=1&dynamic=true&title=Panic+Attack+Events&type=line"
+						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&dynamic=true&title=Panic+Attack+Events&type=line'
 						self.bot.sendMessage(chat_ID,text=f"<a href='{url}'>Heart Rate</a>\n<a href='{url2}'>Accelerometer</a>\n<a href='{url3}'>Panik Attack</a>",parse_mode='HTML',disable_web_page_preview = False) #links of charts on thinspeak are shown 
 
 			elif query_data[0] == 'month':
@@ -84,7 +84,7 @@ class MQTTbot:
 					if patient["patientID"]==query_data[1]:
 						url=f'{self.ReadBaseUrl}{patient["channel"]}/charts/1?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Heart+Rate+Data&type=line' 
 						url2=f'{self.ReadBaseUrl}{patient["channel"]}/charts/2?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Accelerometer+Data&type=line&yaxis=Acceleration+%5Bm%2Fs2%5D&yaxismax=15&yaxismin=-2' 
-						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Panic+Attack+Events&type=line"
+						url3=f'{self.ReadBaseUrl}{patient["channel"]}/charts/4?bgcolor=%23ffffff&color=%23d62020&days=30&dynamic=true&title=Panic+Attack+Events&type=line'
 						self.bot.sendMessage(chat_ID,text=f"<a href='{url}'>Heart Rate</a>\n<a href='{url2}'>Accelerometer</a>\n<a href='{url3}'>Panik Attack</a>",parse_mode='HTML',disable_web_page_preview = False) #links of charts on thinspeak are shown
 
 			
@@ -159,5 +159,8 @@ if __name__ == "__main__":
 
 	tb=MQTTbot(CATALOG_URL,bT,endTopic,clientID)
 	while True: #every 120s token/broker/port and patient "chatID" are retrieved
-		tb.CatalogCommunication()
+		try:
+			tb.CatalogCommunication()
+		except:
+			print('Catalog Communication failed')
 		time.sleep(120)
