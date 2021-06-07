@@ -157,6 +157,7 @@ if __name__=="__main__":
 	clientID=conf["HomeSystemControl"]["clientID"]
 	timeslot = conf["HomeSystemControl"]["TimeSlot"]
 	endTopicS = conf["HomeSystemControl"]["endTopicS"]
+	endTopicP = conf["HomeSystemControl"]["endTopicP"]
 	fp.close()
 
 	HSControl=HomeSystemControl(CATALOG_URL,bt,clientID,timeslot,endTopicS,endTopicP)
