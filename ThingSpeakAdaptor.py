@@ -1,3 +1,4 @@
+  
 from myMQTT import *
 import json
 import requests
@@ -50,7 +51,7 @@ class ThingSpeakGateway():
 				for i,patient in enumerate(self.sleep_dict):
 					if id == patient['Patient']: #if received measurement belongs to a patient present in sleep_dict 
 						t = time.time()-patient['sleep_time']
-						#print(f'Sleep MODE - elapsed time: {t}s')
+						print(f'Sleep MODE - elapsed time: {t}s')
 						if t<16: #and if 15 seconds have not elapsed yet
 							exit() #exit from notify method and the measurment is not stored in thingspeak
 						else:
@@ -211,10 +212,7 @@ if __name__=="__main__":
 		elif today.hour==0: #Next day the flag is restored to True
 			flag=True
 		elif today.minute-prev.minute>2:
-			try:
-				gateway.CatalogCommunication()  #every 2 minutes broker/port and patient information are retrieved
-			except:
-				print('Catalog Communication failed')
+			gateway.CatalogCommunication()  #every 2 minutes broker/port and patient information are retrieved
 			prev = today
 	get.stop()
 
