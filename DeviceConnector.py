@@ -8,10 +8,9 @@ from random import choice
 import sys
 
 class DeviceConnector():
-	def __init__(self,CATALOG_URL,clientID,patient,linesREST,linesSPORT):
+	def __init__(self,CATALOG_URL,clientID,linesREST,linesSPORT):
 		self.linesREST = linesREST
 		self.linesSPORT = linesSPORT
-		self.patient = patient
 		self.clientID = clientID
 		self.CATALOG_URL = CATALOG_URL
 		
@@ -30,8 +29,10 @@ class DeviceConnector():
 		self.status_light=0 #for the lights 0 off, 1 on
 
 	def RESTCommunication(self,filename):
-		self.connected_devices = json.load(open(filename))
-		
+		fp=open(filename)
+		self.connected_devices = json.load(fp)
+		fp.close()
+
 		self.t={}
 		#t structure:
 		#t = {
@@ -89,7 +90,7 @@ class DeviceConnector():
 		for d in self.connected_devices["Sensors"]:
 			print('\n')	
 			topic=d["servicesDetails"][0]["topic"]
-				      
+					  
 			#Temperature and Humidity
 			if d["measureType"]==["Humidity","Temperature"]:
 				msg=dict(self.__message)
@@ -179,8 +180,6 @@ if __name__=="__main__":
 	fp = open(sys.argv[1])
 	conf = json.load(fp)
 	CATALOG_URL = conf["Catalog_url"]
-	patientID = conf['DeviceConnector']["patientID"]
-	clientID='DeviceConnector'+str(patientID)
 	fp.close()
 	
 	#txt files with accelerometer measurements
@@ -192,7 +191,13 @@ if __name__=="__main__":
 	linesSPORT=fp.readlines()
 	fp.close()
 
-	dc=DeviceConnector(CATALOG_URL,clientID,patientID,linesREST,linesSPORT)
+	fp = open(sys.argv[2])
+	dev = json.load(fp)
+	patientID = dev["patientID"]
+	clientID='DeviceConnector'+str(patientID)
+	fp.close()
+
+	dc=DeviceConnector(CATALOG_URL,clientID,linesREST,linesSPORT)
 	#sys.argv[2] is  CONNECTTED_DEVICE.JSON 
 	dc.RESTCommunication(sys.argv[2])
 	dc.MQTTinfoRequest()
@@ -206,8 +211,11 @@ if __name__=="__main__":
 			while True:
 				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperature(1/0=in/out of range), 2: motion sensor (1/0=on/off) 
 				if i==2: #every 120s register devices or refresh registration and retrieve broker/port
-					dc.RESTCommunication(sys.argv[2])
-					dc.MQTTinfoRequest()
+					try:
+						dc.RESTCommunication(sys.argv[2])
+						dc.MQTTinfoRequest()
+					except:
+						print('Catalog Communication failed')
 					i=0 
 				i=i+1
 		except KeyboardInterrupt: #CRTL+C for changing status 
