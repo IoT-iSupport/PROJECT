@@ -43,6 +43,13 @@ class Catalog():
 				for item in self.devices:
 					if item['deviceID']==id:
 						return json.dumps(item,indent=4)
+			#retrieve patient with specific patientID
+			elif uri[0]=='patientID': 
+				id=uri[1]
+				for item in self.patients:
+					if item['patientID']==id:
+						p={"patientID":item["patientID"],"patientName":item["patientName"],"patientSurname":item["patientSurname"],"LightsSchedule":item["LightsSchedule"],"thingspeakInfo":item["thingspeakInfo"]["apikeys"],"channel":item["thingspeakInfo"]["channel"]}
+						return json.dumps(p,indent=4)
 			else:
 				raise cherrypy.HTTPError(400,"Bad Request")
 					
@@ -51,7 +58,7 @@ class Catalog():
 		json_body = json.loads(cherrypy.request.body.read())
 		if not len(uri):
 			raise cherrypy.HTTPError(400,"Bad Request")
-		else: #
+		else:
 			#Add a new device
 			if uri[0]=='device':
 				json_body["lastUpdate"]=time.time()
