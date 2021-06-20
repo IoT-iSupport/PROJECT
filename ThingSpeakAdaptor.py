@@ -48,14 +48,14 @@ class ThingSpeakGateway():
 
 		for i,p in enumerate(self.patients):
 			if int(p)==id:
-				for i,patient in enumerate(self.sleep_dict):
+				for j,patient in enumerate(self.sleep_dict):
 					if id == patient['Patient']: #if received measurement belongs to a patient present in sleep_dict 
 						t = time.time()-patient['sleep_time']
 						#print(f'Sleep MODE - elapsed time: {t}s')
 						if t<16: #and if 15 seconds have not elapsed yet
 							exit() #exit from notify method and the measurment is not stored in thingspeak
 						else:
-							self.sleep_dict.pop(i) #Patient is removed from the list, so measurments can be stored again
+							self.sleep_dict.pop(j) #Patient is removed from the list, so measurments can be stored again
 							break
 				#save measurment in the corresponding ThingSpeak field
 				if topic[3]=='Body':
