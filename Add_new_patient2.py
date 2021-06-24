@@ -30,9 +30,9 @@ class ManageUser():
         r = requests.post(self.catalog_url+'/patient',json = body) #post request to register new patient
         print(f'\nUser correcly registered with id {id}\n')
 
-    def Update(self,id):
+    def Update(self,id): #update information of a registered patient
         r = requests.get(self.catalog_url+'/patientID/{}'.format(id))
-        if r.text=='':
+        if r.text=='': # if patirnt is not registered
             res={"output":'Patient not registered yet'}
             return res
         else:
@@ -48,9 +48,7 @@ class ManageUser():
             body['thingspeakInfo'] = {'apikeys':input('Update the ThingSpeak APIkeys separated by a comma:').split(','),'channel':input('Update the number of the channel:')}
             r = requests.put(self.catalog_url+'/patient',json = body) #put request to update information
             res={"output":'Information Updated'}
-            return res
-        
-                
+            return res                
 
     def devices_file(self,id):
         r = requests.get(self.catalog_url+'/devices')
@@ -117,7 +115,7 @@ class ManageUser():
                     }]
                 }
         ]}
-        #CONNECTED_DEVICES.json with devices associated with the patient
+        #CONNECTED_DEVICESid.json with devices associated with the patient
         fp = open(f'CONNECTED_DEVICES{id}.json','w')
         json.dump(body,fp,indent=4)
         fp.close()
@@ -134,17 +132,20 @@ class ManageUser():
 
 if __name__ == "__main__":
     helpMessage="Press 'add' to add a new user\nPress 'update' to update information of a user already inserted\nPress 'quit' to save end exit"
+    
+    #sys.argv[1] is Configuration_file.json
     fp = open(sys.argv[1])
     conf = json.load(fp)
     fp.close()
     catalog_url = conf["Catalog_url"]
+    
     c=ManageUser(catalog_url)
     while True:
         print(helpMessage)
         command=input()
-        if command=='add':
+        if command=='add': #Add new patient
             c.Add()
-        elif command=='update':
+        elif command=='update': #Update information of a patient
             id=input('Insert patientID of the user you want to update:\n')
             output=c.Update(id)
             print(f'{output["output"]}\n')
