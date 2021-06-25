@@ -191,6 +191,7 @@ if __name__=="__main__":
 	linesSPORT=fp.readlines()
 	fp.close()
 
+	#sys.argv[2] is  CONNECTTED_DEVICE.JSON 
 	fp = open(sys.argv[2])
 	dev = json.load(fp)
 	patientID = dev["patientID"]
@@ -198,7 +199,7 @@ if __name__=="__main__":
 	fp.close()
 
 	dc=DeviceConnector(CATALOG_URL,clientID,linesREST,linesSPORT)
-	#sys.argv[2] is  CONNECTTED_DEVICE.JSON 
+	
 	dc.RESTCommunication(sys.argv[2])
 	dc.MQTTinfoRequest()
 	   
