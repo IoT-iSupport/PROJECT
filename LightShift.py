@@ -21,7 +21,7 @@ class LightShift():
 	
 	def controlStrategy(self): #it checks if it's time to switch on/off the lights
 		for patient in self.dict:
-			topic=f'{self.baseTopic}{patient["patientID"]}{self.endTopic}'
+			topic=f'{self.baseTopic}{patient["patientID"]}/{self.endTopic}'
 			times=patient["time"].split('-') # structure of LightsSchedule "7:00-7:30"
 			now=datetime.today().time() #current time
 			t1=datetime.strptime(times[0],"%H:%M").time() #time to switch on the lights 
