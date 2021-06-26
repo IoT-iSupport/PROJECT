@@ -92,7 +92,6 @@ class Catalog():
 						for k in json_body: # update device information 
 							item[k]=json_body[k]
 						item["lastUpdate"]=time.time()
-						#print(f'\nUpdated registration of patinetID: {json_body["patientID"]}')
 				self.save() 
 			#Update the information of a device
 			elif uri[0]=='device':
