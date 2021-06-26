@@ -21,9 +21,9 @@ To test the platform with 2 patients, this second thingspeak channel has already
 - thingspeakInfo: ZQ2AJZABDSC4MXXG, SV1HOET58CE7225M; 
 - channel: 1342741
 _______________________________________________________________________
-ThingSpeak link for patient 1: [https://thingspeak.com/channels/1264245](https://thingspeak.com/channels/1264245)
+ThingSpeak channel link for patient 1: [https://thingspeak.com/channels/1264245](https://thingspeak.com/channels/1264245)
 
-ThingSpeak link for patient 2: [https://thingspeak.com/channels/1342741](https://thingspeak.com/channels/1342741)
+ThingSpeak channel link for patient 2: [https://thingspeak.com/channels/1342741](https://thingspeak.com/channels/1342741)
 _______________________________________________________________________
 
 The Device connector can simulate different situation: it can be shifted from a normal status to a dangerous one (panic attack).
