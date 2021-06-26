@@ -131,7 +131,7 @@ class ManageUser():
 
 
 if __name__ == "__main__":
-    helpMessage="Press 'add' to add a new user\nPress 'update' to update information of a user already inserted\nPress 'quit' to save end exit"
+    helpMessage="Press 'add' to add a new user\nPress 'update' to update information of a user already inserted\nPress 'quit' to exit"
     
     #sys.argv[1] is Configuration_file.json
     fp = open(sys.argv[1])
