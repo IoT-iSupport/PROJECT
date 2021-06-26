@@ -11,6 +11,7 @@ The name of the file where the information about Catalog IP address and other in
 (Configuration_file.json in this folder).
 The device connector needs a second parameter from the command line, which is the name of the file that contains the information about the devices connected to the
 patient.(*CONNECTED_DEVICE.json* in this folder is linked to the patient with the id = 1).
+
 **NOTE**: In Catalog.json a patient (with ID 1) is already inserted but it is possible to add more patients using the script *Add_patient.py*. This script also creates a json
 file (CONNECTED_DEVICEid.json) with the information about the devices connected to the registered patient. Once the new patient is inserted is necessary to start the
 DeviceConnector.py with the 2 command line argument: *Configuration_file.json* and *CONNECTED_DEVICEid.json* where ID is the ID of the newly registered user
