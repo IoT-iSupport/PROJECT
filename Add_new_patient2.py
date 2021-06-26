@@ -32,7 +32,7 @@ class ManageUser():
 
     def Update(self,id): #update information of a registered patient
         r = requests.get(self.catalog_url+'/patientID/{}'.format(id))
-        if r.text=='': # if patirnt is not registered
+        if r.text=='': # if patient is not registered
             res={"output":'Patient not registered yet'}
             return res
         else:
