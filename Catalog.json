@@ -99,27 +99,6 @@
     ],
     "patientList": [
         {
-            "patientID": "2",
-            "patientName": "Francesco",
-            "patientSurname": "Bianchi",
-            "LightsSchedule": "17:00-18:30",
-            "connectedDevices": [
-                {
-                    "measure": "Temperature",
-                    "deviceID": "t_1"
-                }
-            ],
-            "telegramIDs": [],
-            "thingspeakInfo": {
-                "apikeys": [
-                    "ZQ2AJZABDSC4MXXG",
-                    "SV1HOET58CE7225M"
-                ],
-                "channel": 1342741
-            },
-            "lastUpdate": ""
-        },
-        {
             "patientID": "1",
             "patientName": "Mario",
             "patientSurname": "Rossi",
