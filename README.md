@@ -1,5 +1,4 @@
-#           iSUPPORT PLATFORM
-# Programming for IoT application project
+#  iSUPPORT PLATFORM (programming for IoT application project)
 
 
 Link **DEMO**: [https://youtu.be/iXHYLhUb1us](https://youtu.be/iXHYLhUb1us)
