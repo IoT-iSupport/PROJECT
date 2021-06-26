@@ -31,7 +31,6 @@
     },
     
     "TelegramBot": {
-
         "clientID":"telegramBot_iSupport",
         "endTopic":"telegram"
     } 
