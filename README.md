@@ -15,12 +15,15 @@ The device connector needs a second parameter from the command line, which is th
 patient.(*CONNECTED_DEVICE.json* in this folder is linked to the patient with the id = 1).
 
 **NOTE**: In Catalog.json a patient (with ID 1) is already inserted but it is possible to add more patients using the script *Add_patient.py*. This script also creates a json
-file (CONNECTED_DEVICEid.json) with the information about the devices connected to the registered patient. Once the new patient is inserted is necessary to start the
+file (*CONNECTED_DEVICEid.json*) with the information about the devices connected to the registered patient. Once the new patient is inserted is necessary to start the
 DeviceConnector.py with the 2 command line argument: *Configuration_file.json* and *CONNECTED_DEVICEid.json* where ID is the ID of the newly registered user
 To test the platform with 2 patients, this second thingspeak channel has already been created:
 - thingspeakInfo: ZQ2AJZABDSC4MXXG, SV1HOET58CE7225M; 
 - channel: 1342741
+_______________________________________________________________________
+ThingSpeak link for patient 1: [https://thingspeak.com/channels/1264245](https://thingspeak.com/channels/1264245)
 
+ThingSpeak link for patient 2: [https://thingspeak.com/channels/1342741](https://thingspeak.com/channels/1342741)
 _______________________________________________________________________
 
 The Device connector can simulate different situation: it can be shifted from a normal status to a dangerous one (panic attack).
