@@ -51,7 +51,7 @@ class PatientControl():
 					
 					if median(patient["windowHR"]) > 1.5*patient['lastHR']: #if current HR increases more than 50% of the previous HR
 						print('Condizione HR fatta')
-						if not abs(median(patient["windowACC"])) > 4*abs(patient['lastACC']): #if current acceleromenter measures do not increases more than twice the previous values
+						if not abs(median(patient["windowACC"])) > 4*abs(patient['lastACC']): #if current acceleromenter measures do not increases much more than the previous values
 							print('Condizione ACC fatta: EMERGENCY ALERT!')
 							url=f'{self.WriteBaseUrl}{patient["apikeyWrite"]}&field4=1' #for collecting panic attack event
 							msg={"patientID":patient["patientID"],"alertStatus":1}
