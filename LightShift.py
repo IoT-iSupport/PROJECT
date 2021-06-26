@@ -30,8 +30,7 @@ class LightShift():
 			if t1<=now<=t2: # if it's time to switch on the lights... 
 				if patient["status"]==0: # if lights are switched off, an actuation command is sent to switched lights of this patient on (nothing is done if lights are already switched on)
 					patient["status"]=1
-					msg={'patientID':patient["patientID"], 
-						'bn':'ligth_'+str(patient["patientID"]),
+					msg={'bn':'ligth_'+str(patient["patientID"]),
 						'e':
 							[
 								{'n':'Light','value':1, 'timestamp':time.time(),'unit':'Bool'},
