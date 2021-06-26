@@ -83,7 +83,7 @@ class DeviceConnector():
 		self.client.stop()
 
 	def publish(self,range_hr,flag_temp,flag_motion): 
-		#range_hr= is a letter r(=rest)/d(=danger)/s(=sport) for HR measurements
+		#range_hr= is a letter r(=rest)/d(=danger)/s(=sport) for HR and accelerometer measurements
 		#flag_temp = is a boolean for temp and hum out of comfort-home-status, ranges 1 = in range value, 0=out of range value
 		#flag_motion=is a boolean that stands for 1= Presence or 0=Not presence
 		
@@ -139,13 +139,13 @@ class DeviceConnector():
 				
 				#Accelerometer
 				if range_hr=='r' or range_hr=='d': #rest or danger/panic attack
-					n=random.randint(5,len(self.linesREST))		
+					n=random.randint(4,len(self.linesREST)-1)		
 					m=self.linesREST[n].split(',')
 					float_number=[float(number) for number in m]
 					b=float_number[4]
 				
 				elif range_hr=='s': #sport
-					n=random.randint(5,len(self.linesSPORT))		
+					n=random.randint(4,len(self.linesSPORT)-1)		
 					m=self.linesSPORT[n].split(',')
 					float_number=[float(number) for number in m]
 					b=float_number[4] #the absolute value of the accelerometer 3-axial measurements
