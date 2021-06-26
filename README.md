@@ -18,7 +18,6 @@ in order to allow the Patient control to detect the changes.
 
 For the telegram bot, first of all, you have to start the conversation with the command /start, that allows the storage of your chatID to a specific patient.
 
-For DataAnalysis
 
 For the NODE-RED flow see the file in this folder. Palette used:
 Digital Display: node-red-contib-ui-digital-display
