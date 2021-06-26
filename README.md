@@ -1,4 +1,7 @@
 # ioT PROJECT
+Link DEMO:
+Link PROMO:
+
 The Catalog needs a second parameter from the command line (Catalog.json)
 
 The name of the file where the information about Catalog IP address and other information for each microcervices are stored must be passed from command line. 
