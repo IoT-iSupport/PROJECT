@@ -15,7 +15,9 @@ NOTE: In Catalog.json a patient (with ID 1) is already inserted but it is possib
 file (CONNECTED_DEVICEid.json) with the information about the devices connected to the registered patient. Once the new patient is inserted is necessary to start the
 DeviceConnector.py with the 2 command line argument: Configuration_file.json and CONNECTED_DEVICEid.json where ID is the ID of the newly registered user
 To test the platform with 2 patients, this second thingspeak channel has already been created:
+
 thingspeakInfo: ZQ2AJZABDSC4MXXG, SV1HOET58CE7225M; 
+
 channel: 1342741
 
 _______________________________________________________________________
