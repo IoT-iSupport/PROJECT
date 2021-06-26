@@ -1,7 +1,6 @@
 
 {
 	"patientID":1,
-	
 	"Sensors":[{
 			"deviceName":"smartwatch_1",
 			"deviceID":"1",
