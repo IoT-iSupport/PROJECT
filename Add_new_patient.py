@@ -44,7 +44,7 @@ class ManageUser():
             body["patientID"]=str(id)
             body["patientName"]=input('Update the name:\n')
             body["patientSurname"]=input('Update the surname:\n')
-            body["LightsSchedule"]=input('Update the light schedule in the format HH:MM-H:MM:\n')
+            body["LightsSchedule"]=input('Update the light schedule in the format HH:MM-HH:MM:\n')
             body['thingspeakInfo'] = {'apikeys':input('Update the ThingSpeak APIkeys separated by a comma:').split(','),'channel':input('Update the number of the channel:')}
             r = requests.put(self.catalog_url+'/patient',json = body) #put request to update information
             res={"output":'Information Updated'}
