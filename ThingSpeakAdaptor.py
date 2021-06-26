@@ -53,7 +53,7 @@ class ThingSpeakGateway():
 						t = time.time()-patient['sleep_time']
 						#print(f'Sleep MODE - elapsed time: {t}s')
 						if t<16: #and if 15 seconds have not elapsed yet
-							exit() #exit from notify method and the measurment is not stored in thingspeak
+							return #exit from notify method and the measurment is not stored in thingspeak
 						else:
 							self.sleep_dict.pop(j) #Patient is removed from the list, so measurments can be stored again
 							break
