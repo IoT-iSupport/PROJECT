@@ -1,7 +1,7 @@
 # ioT PROJECT
-Link **DEMO**: [Link](https://youtu.be/xe4MlNTb9Qs)
+Link **DEMO**: []()
 
-Link **PROMO**: [Link]()
+Link **PROMO**: [PROMO_video](https://youtu.be/xe4MlNTb9Qs)
 
 _______________________________________________________________________
 
