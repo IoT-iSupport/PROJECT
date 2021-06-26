@@ -13,9 +13,11 @@ thingspeakInfo: ZQ2AJZABDSC4MXXG, SV1HOET58CE7225M;
 channel: 1342741
 
 The Device connector can simulate different situation: it can be shifted from a normal status to a dangerous one (panic attack).
-It is raccomanded, for the Panik attack simulation to run before a rest status or a sport one, and after 10 minutes, shift to the dangerous status, 
+It is raccomanded, for the Panic attack simulation to run before a rest status or a sport one, and after 10 minutes, shift to the dangerous status, 
 in order to allow the Patient control to detect the changes.
 
 For the telegram bot, first of all, you have to start the conversation with the command /start, that allows the storage of your chatID to a specific patient.
 
 For DataAnalysis
+
+For the NODE-RED flow see the file in this folder
