@@ -20,7 +20,6 @@ For the telegram bot, first of all, you have to start the conversation with the 
 
 For DataAnalysis
 
-For the NODE-RED flow see the file in this folder
-
+For the NODE-RED flow see the file in this folder. Palette used:
 Digital Display: node-red-contib-ui-digital-display
 Dashboard: node-red-dashboard
