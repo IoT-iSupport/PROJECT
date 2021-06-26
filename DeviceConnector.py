@@ -211,7 +211,7 @@ if __name__=="__main__":
 		try:
 			while True:
 				dc.publish(command[0],int(command[1]),command[2]) #0: heart rate range, 1: temperature(1/0=in/out of range), 2: motion sensor (1/0=on/off) 
-				if i==2: #every 120s register devices or refresh registration and retrieve broker/port
+				if i==2: #about every 120s register devices or refresh registration and retrieve broker/port
 					try:
 						dc.RESTCommunication(sys.argv[2])
 						dc.MQTTinfoRequest()
