@@ -1,6 +1,9 @@
 # ioT PROJECT
-Link DEMO:
-Link PROMO:
+Link **DEMO**: [Link]()
+
+Link **PROMO**: [Link]()
+
+_______________________________________________________________________
 
 The Catalog needs a second parameter from the command line (Catalog.json)
 
@@ -15,13 +18,19 @@ To test the platform with 2 patients, this second thingspeak channel has already
 thingspeakInfo: ZQ2AJZABDSC4MXXG, SV1HOET58CE7225M; 
 channel: 1342741
 
+_______________________________________________________________________
+
 The Device connector can simulate different situation: it can be shifted from a normal status to a dangerous one (panic attack).
 It is raccomanded, for the Panic attack simulation to run before a rest status or a sport one, and after 10 minutes, shift to the dangerous status, 
 in order to allow the Patient control to detect the changes.
 
+_______________________________________________________________________
+
 For the telegram bot, first of all, you have to start the conversation with the command /start, that allows the storage of your chatID to a specific patient.
 
+_______________________________________________________________________
 
 For the NODE-RED flow see the file in this folder. Palette used:
-Digital Display: node-red-contib-ui-digital-display
-Dashboard: node-red-dashboard
+1. Digital Display: node-red-contib-ui-digital-display
+
+2. Dashboard: node-red-dashboard
